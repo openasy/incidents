@@ -1,0 +1,33 @@
+# Incidents. People open and run incidents here; other products open them with an API token from Settings (ADR 0041).
+#
+#   openssl rand -hex 32 > openasy-kek   # incidents's key: sign-in secrets (ADR 0021). Keep it with your backups
+#   docker compose up -d
+#   docker compose logs incidents | grep 'no owner yet'   # the one-time link that creates the owner account
+services:
+  incidents:
+    image: ghcr.io/openasy/incidents:0.1.0
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    ports:
+      - "127.0.0.1:8080:8080"   # UI and API; put a TLS proxy in front to reach it from elsewhere
+    volumes:
+      - incidents-data:/data   # SQLite database: incidents, timelines, tasks, evidence links and postmortems
+    secrets:
+      - openasy-kek   # mounted at /run/secrets/openasy-kek
+    environment:
+      # The address people open Incidents at; with a TLS proxy in front, its https:// URL.
+      INCIDENTS_PUBLIC_URL: ${INCIDENTS_PUBLIC_URL:-http://localhost:8080}
+      # Sign in with your identity provider (OIDC), see the README:
+      # INCIDENTS_OIDC_ISSUER: https://login.example.com
+      # INCIDENTS_OIDC_CLIENT_ID: incidents
+      # INCIDENTS_OIDC_CLIENT_SECRET: ${INCIDENTS_OIDC_CLIENT_SECRET}
+
+volumes:
+  incidents-data:
+
+secrets:
+  openasy-kek:
+    file: ./openasy-kek

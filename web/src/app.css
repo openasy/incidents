@@ -1,0 +1,33 @@
+/* The few layouts this product needs that @openasy/ui's prebuilt styles do not include. Colours stay in the library's tokens. */
+
+/* One line of a long summary in a table cell; the full text is in the title. */
+.incidents-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 36rem;
+  overflow-wrap: anywhere;
+}
+
+.incidents-wrap {
+  overflow-wrap: anywhere;
+}
+
+.incidents-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The postmortem is Markdown text; it keeps its line breaks while it is edited and when it is read. */
+.incidents-textarea {
+  min-height: 16rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  resize: vertical;
+}
+
+.incidents-prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
