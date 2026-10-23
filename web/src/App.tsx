@@ -72,12 +72,12 @@ function useApi() {
 type Call = ReturnType<typeof useApi>;
 
 const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
-const STATUSES = (t: T): Array<{ value: Status; label: string }> => ([
+const STATUSES = (t: T): Array<{ value: Status; label: string }> => [
   { value: "open", label: t("statuses.open") },
   { value: "investigating", label: t("statuses.investigating") },
   { value: "mitigated", label: t("statuses.mitigated") },
   { value: "resolved", label: t("statuses.resolved") },
-]);
+];
 const sevOptions = SEVERITIES.map((s) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }));
 
 function StatusPill({ status }: { status: Status }) {
@@ -119,7 +119,10 @@ function NewIncidentDialog({ open, onClose, call, onCreated }: { open: boolean; 
     e.preventDefault();
     try {
       const list = products.split(/[\s,]+/).filter(Boolean);
-      const i = await call<Incident>("/api/v1/incidents", { method: "POST", body: JSON.stringify({ title, severity, commander: commander || undefined, summary: summary || undefined, products: list }) });
+      const i = await call<Incident>("/api/v1/incidents", {
+        method: "POST",
+        body: JSON.stringify({ title, severity, commander: commander || undefined, summary: summary || undefined, products: list }),
+      });
       close();
       onCreated(i.key);
     } catch (err) {
@@ -150,7 +153,12 @@ function NewIncidentDialog({ open, onClose, call, onCreated }: { open: boolean; 
         <SelectField label={t("newIncidentDialog.severity")} value={severity} onChange={(e) => setSeverity(e.target.value as Severity)} options={sevOptions} />
         <TextField label={t("newIncidentDialog.commander")} value={commander} onChange={(e) => setCommander(e.target.value)} />
       </div>
-      <TextField label={t("newIncidentDialog.productsInvolved")} value={products} onChange={(e) => setProducts(e.target.value)} hint={t("newIncidentDialog.productIdsSeparatedByCommas")} />
+      <TextField
+        label={t("newIncidentDialog.productsInvolved")}
+        value={products}
+        onChange={(e) => setProducts(e.target.value)}
+        hint={t("newIncidentDialog.productIdsSeparatedByCommas")}
+      />
       <TextField label={t("newIncidentDialog.summary")} value={summary} onChange={(e) => setSummary(e.target.value)} />
     </Dialog>
   );
@@ -178,7 +186,14 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
     },
     [call, view, sev, q],
   );
-  const load = useCallback(() => void query().then((r) => (setRows(r.incidents), setMore(r.nextCursor)), () => setRows([])), [query]);
+  const load = useCallback(
+    () =>
+      void query().then(
+        (r) => (setRows(r.incidents), setMore(r.nextCursor)),
+        () => setRows([]),
+      ),
+    [query],
+  );
   useEffect(load, [load]);
   const loadMore = () => more && query(more).then((r) => (setRows((x) => [...(x ?? []), ...r.incidents]), setMore(r.nextCursor)));
 
@@ -206,7 +221,12 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
     { id: "commander", header: t("incidentsPage.commander"), cell: (i) => <span className="text-xs">{i.commander ?? "–"}</span> },
     { id: "products", header: t("incidentsPage.products"), cell: (i) => <Products ids={i.products} /> },
     { id: "tasks", header: t("incidentsPage.openTasks"), align: "right", cell: (i) => i.openTasks },
-    { id: "opened", header: t("incidentsPage.opened"), sortValue: (i) => i.createdAt, cell: (i) => <span className="text-xs whitespace-nowrap">{ago(i.createdAt)}</span> },
+    {
+      id: "opened",
+      header: t("incidentsPage.opened"),
+      sortValue: (i) => i.createdAt,
+      cell: (i) => <span className="text-xs whitespace-nowrap">{ago(i.createdAt)}</span>,
+    },
   ];
 
   const s = summary;
@@ -229,7 +249,12 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
       />
       {s && (
         <KpiGrid minWidth={150}>
-          <KpiCard label={t("incidentsPage.critical")} value={s.open.critical} tone={s.open.critical ? "danger" : "success"} footer={<SeverityBadge severity="critical" />} />
+          <KpiCard
+            label={t("incidentsPage.critical")}
+            value={s.open.critical}
+            tone={s.open.critical ? "danger" : "success"}
+            footer={<SeverityBadge severity="critical" />}
+          />
           <KpiCard label={t("incidentsPage.high")} value={s.open.high} footer={<SeverityBadge severity="high" />} />
           <KpiCard label={t("incidentsPage.medium")} value={s.open.medium} footer={<SeverityBadge severity="medium" />} />
           <KpiCard label={t("incidentsPage.low")} value={s.open.low} footer={<SeverityBadge severity="low" />} />
@@ -248,7 +273,12 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
         ]}
       />
       <FilterBar onClear={() => (setSev([]), setQ(""))}>
-        <FacetFilter label={t("incidentsPage.severity")} selected={sev} onChange={setSev} options={sevOptions.map((o) => ({ ...o, count: view === "active" ? s?.open[o.value as Severity] : undefined }))} />
+        <FacetFilter
+          label={t("incidentsPage.severity")}
+          selected={sev}
+          onChange={setSev}
+          options={sevOptions.map((o) => ({ ...o, count: view === "active" ? s?.open[o.value as Severity] : undefined }))}
+        />
       </FilterBar>
       <Panel
         flush
@@ -272,7 +302,7 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
             <EmptyState title={view === "active" ? t("incidentsPage.noActiveIncidents") : t("incidentsPage.noIncidents")}>
               {s && s.total === 0 ? (
                 <>
-                  {t("incidentsPage.nothingHasBeenOpenedYet")}{" "}<a href="/setup">{t("incidentsPage.setup")}</a>.
+                  {t("incidentsPage.nothingHasBeenOpenedYet")} <a href="/setup">{t("incidentsPage.setup")}</a>.
                 </>
               ) : (
                 t("incidentsPage.nothingMatchesTheseFilters")
@@ -298,7 +328,13 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
 
 type Section = "timeline" | "tasks" | "evidence" | "postmortem";
 
-const KIND_LABEL = (t: T): Record<string, string> => ({ note: "Note", "status-change": "Status", "severity-change": "Severity", link: "Link", "task-done": t("kindLabel.taskDone") });
+const KIND_LABEL = (t: T): Record<string, string> => ({
+  note: "Note",
+  "status-change": "Status",
+  "severity-change": "Severity",
+  link: "Link",
+  "task-done": t("kindLabel.taskDone"),
+});
 
 function TimelinePanel({ incident, call, onChange }: { incident: Incident; call: Call; onChange: (i: Incident) => void }) {
   const ago = useAgo();
@@ -375,12 +411,23 @@ function TasksPanel({ incident, call, onChange }: { incident: Incident; call: Ca
                 label={<span className={t.done ? "text-fg-muted line-through" : ""}>{t.title}</span>}
                 checked={t.done}
                 disabled={!can("editor")}
-                onChange={(e) => void call<Incident>(`${base}/${t.id}`, { method: "PATCH", body: JSON.stringify({ done: e.target.checked }) }).then(onChange, () => {})}
+                onChange={(e) =>
+                  void call<Incident>(`${base}/${t.id}`, { method: "PATCH", body: JSON.stringify({ done: e.target.checked }) }).then(onChange, () => {})
+                }
               />
               {t.owner && <Badge>{t.owner}</Badge>}
               {t.due && <span className="text-xs text-fg-muted">due {new Date(t.due).toLocaleDateString()}</span>}
               {can("editor") && (
-                <IconButton label={msg("tasksPanel.deleteTheTask", { title: t.title })} size="sm" onClick={() => void call(`${base}/${t.id}`, { method: "DELETE" }).then(() => call<Incident>(`/api/v1/incidents/${incident.id}`).then(onChange), () => {})}>
+                <IconButton
+                  label={msg("tasksPanel.deleteTheTask", { title: t.title })}
+                  size="sm"
+                  onClick={() =>
+                    void call(`${base}/${t.id}`, { method: "DELETE" }).then(
+                      () => call<Incident>(`/api/v1/incidents/${incident.id}`).then(onChange),
+                      () => {},
+                    )
+                  }
+                >
                   <Trash2 />
                 </IconButton>
               )}
@@ -434,7 +481,16 @@ function EvidencePanel({ incident, call, onChange }: { incident: Incident; call:
               </a>
               {ev.source && <Badge mono>{ev.source}</Badge>}
               {can("editor") && (
-                <IconButton label={t("evidencePanel.removeTheLink", { title: ev.title })} size="sm" onClick={() => void call(`${base}/${ev.id}`, { method: "DELETE" }).then(() => call<Incident>(`/api/v1/incidents/${incident.id}`).then(onChange), () => {})}>
+                <IconButton
+                  label={t("evidencePanel.removeTheLink", { title: ev.title })}
+                  size="sm"
+                  onClick={() =>
+                    void call(`${base}/${ev.id}`, { method: "DELETE" }).then(
+                      () => call<Incident>(`/api/v1/incidents/${incident.id}`).then(onChange),
+                      () => {},
+                    )
+                  }
+                >
                   <Trash2 />
                 </IconButton>
               )}
@@ -446,7 +502,13 @@ function EvidencePanel({ incident, call, onChange }: { incident: Incident; call:
         <form onSubmit={add} className="mt-3 flex flex-wrap items-end gap-2 border-t border-line pt-3">
           <TextField className="w-48" label={t("evidencePanel.title")} value={title} onChange={(e) => setTitle(e.target.value)} />
           <TextField className="min-w-64 flex-1" label={t("evidencePanel.address")} value={url} onChange={(e) => setUrl(e.target.value)} error={error} />
-          <TextField className="w-32" label={t("evidencePanel.product")} value={source} onChange={(e) => setSource(e.target.value)} hint={t("evidencePanel.suchAsLogs")} />
+          <TextField
+            className="w-32"
+            label={t("evidencePanel.product")}
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            hint={t("evidencePanel.suchAsLogs")}
+          />
           <Button type="submit" variant="primary" disabled={!title.trim() || !url.trim()}>
             {t("evidencePanel.add")}
           </Button>
@@ -482,7 +544,15 @@ function PostmortemPanel({ incident, call, onChange }: { incident: Incident; cal
     <Panel
       title={t("postmortemPanel.postmortem")}
       description={t("postmortemPanel.whatHappenedWhyAndWhat")}
-      actions={pm ? <StatusBadge tone={pm.status === "published" ? "success" : "warning"}>{pm.status === "published" ? t("postmortemPanel.published") : t("postmortemPanel.draft")}</StatusBadge> : <StatusBadge tone="danger">{t("postmortemPanel.notWritten")}</StatusBadge>}
+      actions={
+        pm ? (
+          <StatusBadge tone={pm.status === "published" ? "success" : "warning"}>
+            {pm.status === "published" ? t("postmortemPanel.published") : t("postmortemPanel.draft")}
+          </StatusBadge>
+        ) : (
+          <StatusBadge tone="danger">{t("postmortemPanel.notWritten")}</StatusBadge>
+        )
+      }
     >
       {can("editor") ? (
         <div className="flex flex-col gap-2">
@@ -527,7 +597,7 @@ function IncidentPage({ call, id, reload }: { call: Call; id: string; reload: ()
   if (incident === null)
     return (
       <EmptyState title={t("incidentPage.incidentNotFound")}>
-        {t("incidentPage.itMayHaveBeenDeleted")}{" "}<a href="/incidents">{t("incidentPage.backToIncidents")}</a>.
+        {t("incidentPage.itMayHaveBeenDeleted")} <a href="/incidents">{t("incidentPage.backToIncidents")}</a>.
       </EmptyState>
     );
   const changed = (i: Incident) => (setIncident(i), reload());
@@ -546,15 +616,40 @@ function IncidentPage({ call, id, reload }: { call: Call; id: string; reload: ()
     <>
       <PageHeader
         title={incident ? `${incident.key} ${incident.title}` : t("incidentPage.incident")}
-        description={incident ? t("incidentPage.opened", { ago: ago(incident.createdAt), value: incident.resolvedAt ? `, resolved ${ago(incident.resolvedAt)}` : "", value2: incident.external ? ` · reported by ${incident.external.source}` : "" }) : undefined}
+        description={
+          incident
+            ? t("incidentPage.opened", {
+                ago: ago(incident.createdAt),
+                value: incident.resolvedAt ? `, resolved ${ago(incident.resolvedAt)}` : "",
+                value2: incident.external ? ` · reported by ${incident.external.source}` : "",
+              })
+            : undefined
+        }
         actions={incident && <StatusPill status={incident.status} />}
       />
       {incident && (
         <Panel>
           <div className="grid gap-2 sm:grid-cols-3">
-            <SelectField label={t("incidentPage.status")} value={incident.status} disabled={!can("editor")} onChange={(e) => void patch({ status: e.target.value })} options={STATUSES(t)} />
-            <SelectField label={t("incidentPage.severity")} value={incident.severity} disabled={!can("editor")} onChange={(e) => void patch({ severity: e.target.value })} options={sevOptions} />
-            <TextField label={t("incidentPage.commander")} defaultValue={incident.commander ?? ""} disabled={!can("editor")} onBlur={(e) => e.target.value !== (incident.commander ?? "") && void patch({ commander: e.target.value || null })} />
+            <SelectField
+              label={t("incidentPage.status")}
+              value={incident.status}
+              disabled={!can("editor")}
+              onChange={(e) => void patch({ status: e.target.value })}
+              options={STATUSES(t)}
+            />
+            <SelectField
+              label={t("incidentPage.severity")}
+              value={incident.severity}
+              disabled={!can("editor")}
+              onChange={(e) => void patch({ severity: e.target.value })}
+              options={sevOptions}
+            />
+            <TextField
+              label={t("incidentPage.commander")}
+              defaultValue={incident.commander ?? ""}
+              disabled={!can("editor")}
+              onBlur={(e) => e.target.value !== (incident.commander ?? "") && void patch({ commander: e.target.value || null })}
+            />
           </div>
           <div className="mt-3 flex flex-col gap-1 text-sm">
             {incident.summary && <p className="incidents-prose m-0 text-fg-muted">{incident.summary}</p>}
@@ -652,8 +747,14 @@ function SettingsPage({ page }: { page: "account" | "members" | "signin" | "toke
   if (page !== "account" && !can("admin")) return <EmptyState title={t("settingsPage.adminsOnly")}>{t("settingsPage.askAnAdminOfThis")}</EmptyState>;
   const titles = {
     account: ["Account", "Your profile, password, two-step verification and where you are signed in."],
-    members: ["Members", "Who can sign in to this incidents, and with which role. Viewers read everything; editors also open and run incidents; admins also delete them, and manage members and tokens."],
-    signin: ["Sign-in", "Identity providers people can sign in with, such as OpenAsy Identity, Keycloak or Microsoft Entra ID, and which of their groups give which role."],
+    members: [
+      "Members",
+      "Who can sign in to this incidents, and with which role. Viewers read everything; editors also open and run incidents; admins also delete them, and manage members and tokens.",
+    ],
+    signin: [
+      "Sign-in",
+      "Identity providers people can sign in with, such as OpenAsy Identity, Keycloak or Microsoft Entra ID, and which of their groups give which role.",
+    ],
     tokens: ["API tokens", "For scripts and other products. Each token has one role and an expiry; the secret is shown once."],
   } as const;
   return (
@@ -686,7 +787,8 @@ function Product() {
   // The install's other products (OPENASY_PRODUCTS), for the switcher; ids this UI does not know are left out.
   useEffect(() => {
     void call<{ products: ProductLink[] }>("/api/v1/products").then(
-      (r) => setProducts(r.products.filter((p): p is ProductLink & { id: ProductId } => p.id !== "incidents" && (PRODUCT_IDS as readonly string[]).includes(p.id))),
+      (r) =>
+        setProducts(r.products.filter((p): p is ProductLink & { id: ProductId } => p.id !== "incidents" && (PRODUCT_IDS as readonly string[]).includes(p.id))),
       () => {},
     );
   }, [call]);
@@ -698,7 +800,9 @@ function Product() {
     return () => clearInterval(t);
   }, [reload]);
 
-  const nav = [{ id: "incidents", label: msg("product.incidents"), icon: Siren, count: summary ? Object.values(summary.open).reduce((a, b) => a + b, 0) : undefined }];
+  const nav = [
+    { id: "incidents", label: msg("product.incidents"), icon: Siren, count: summary ? Object.values(summary.open).reduce((a, b) => a + b, 0) : undefined },
+  ];
   const footerNav = [
     { id: "setup", label: msg("product.setup"), icon: Settings2 },
     ...(can("admin")

@@ -52,7 +52,8 @@ export function parseLimit(value: string | null, max = 500, fallback = 100): num
 }
 
 const str = (v: unknown, name: string, min: number, max: number): string => {
-  if (typeof v !== "string" || v.trim().length < min || v.trim().length > max) throw bad(`${name} must be ${min === 0 ? "at most" : `${min} to`} ${max} characters.`);
+  if (typeof v !== "string" || v.trim().length < min || v.trim().length > max)
+    throw bad(`${name} must be ${min === 0 ? "at most" : `${min} to`} ${max} characters.`);
   return v.trim();
 };
 const optStr = (v: unknown, name: string, max: number): string | null => (v === undefined || v === null || v === "" ? null : str(v, name, 1, max));
@@ -61,12 +62,14 @@ const oneOf = <T extends string>(v: unknown, name: string, list: readonly T[]): 
   return v as T;
 };
 function productList(v: unknown): string[] {
-  if (!Array.isArray(v) || v.length > MAX_PRODUCTS || v.some((p) => typeof p !== "string" || !PRODUCT.test(p))) throw bad(`products is a list of at most ${MAX_PRODUCTS} product ids such as "siem" or "vpn".`);
+  if (!Array.isArray(v) || v.length > MAX_PRODUCTS || v.some((p) => typeof p !== "string" || !PRODUCT.test(p)))
+    throw bad(`products is a list of at most ${MAX_PRODUCTS} product ids such as "siem" or "vpn".`);
   return [...new Set(v as string[])];
 }
 function webUrl(v: unknown): string {
   const u = typeof v === "string" ? URL.parse(v.trim()) : null;
-  if (!u || (u.protocol !== "https:" && u.protocol !== "http:") || u.username || u.password) throw bad("url must be a web address starting with http:// or https://, without credentials.");
+  if (!u || (u.protocol !== "https:" && u.protocol !== "http:") || u.username || u.password)
+    throw bad("url must be a web address starting with http:// or https://, without credentials.");
   return u.href;
 }
 function exact(body: Record<string, unknown>, allowed: string[]) {
@@ -90,7 +93,9 @@ export interface IncidentsOptions {
 export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: IncidentsOptions = {}) {
   const row = (idOrKey: string) => {
     const m = /^INC-(\d{1,9})$/i.exec(idOrKey);
-    const r = (m ? db.prepare("SELECT * FROM incidents WHERE number = ?").get(Number(m[1])) : db.prepare("SELECT * FROM incidents WHERE id = ?").get(idOrKey)) as Record<string, any> | undefined;
+    const r = (
+      m ? db.prepare("SELECT * FROM incidents WHERE number = ?").get(Number(m[1])) : db.prepare("SELECT * FROM incidents WHERE id = ?").get(idOrKey)
+    ) as Record<string, any> | undefined;
     if (!r) throw notFound("The incident");
     return r;
   };
@@ -124,15 +129,42 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
     const pm = db.prepare("SELECT * FROM postmortems WHERE incident_id = ?").get(r.id) as Record<string, any> | undefined;
     return {
       ...present(r),
-      timeline: (db.prepare("SELECT * FROM timeline WHERE incident_id = ? ORDER BY id").all(r.id) as Array<Record<string, any>>).map((t) => ({ id: t.id as number, kind: t.kind as string, text: t.text as string, author: t.author as string, at: t.at as string })),
+      timeline: (db.prepare("SELECT * FROM timeline WHERE incident_id = ? ORDER BY id").all(r.id) as Array<Record<string, any>>).map((t) => ({
+        id: t.id as number,
+        kind: t.kind as string,
+        text: t.text as string,
+        author: t.author as string,
+        at: t.at as string,
+      })),
       tasks: (db.prepare("SELECT * FROM tasks WHERE incident_id = ? ORDER BY created_at, rowid").all(r.id) as Array<Record<string, any>>).map(presentTask),
-      evidence: (db.prepare("SELECT * FROM evidence WHERE incident_id = ? ORDER BY created_at, rowid").all(r.id) as Array<Record<string, any>>).map((e) => ({ id: e.id as string, title: e.title as string, url: e.url as string, source: (e.source as string | null) ?? null, createdAt: e.created_at as string })),
-      postmortem: pm ? { body: pm.body as string, status: pm.status as "draft" | "published", updatedAt: pm.updated_at as string, updatedBy: pm.updated_by as string, publishedAt: (pm.published_at as string | null) ?? null } : null,
+      evidence: (db.prepare("SELECT * FROM evidence WHERE incident_id = ? ORDER BY created_at, rowid").all(r.id) as Array<Record<string, any>>).map((e) => ({
+        id: e.id as string,
+        title: e.title as string,
+        url: e.url as string,
+        source: (e.source as string | null) ?? null,
+        createdAt: e.created_at as string,
+      })),
+      postmortem: pm
+        ? {
+            body: pm.body as string,
+            status: pm.status as "draft" | "published",
+            updatedAt: pm.updated_at as string,
+            updatedBy: pm.updated_by as string,
+            publishedAt: (pm.published_at as string | null) ?? null,
+          }
+        : null,
     };
   }
 
   function presentTask(t: Record<string, any>) {
-    return { id: t.id as string, title: t.title as string, owner: (t.owner as string | null) ?? null, done: t.done === 1, due: (t.due as string | null) ?? null, createdAt: t.created_at as string };
+    return {
+      id: t.id as string,
+      title: t.title as string,
+      owner: (t.owner as string | null) ?? null,
+      done: t.done === 1,
+      due: (t.due as string | null) ?? null,
+      createdAt: t.created_at as string,
+    };
   }
 
   function dueDate(v: unknown): string | null {
@@ -165,7 +197,8 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
       db.exec("BEGIN IMMEDIATE");
       try {
         if (external) {
-          const same = db.prepare("SELECT * FROM incidents WHERE ext_source = ? AND ext_ref = ?").get(external.source, external.reference) as Record<string, any> | undefined;
+          const same = db.prepare("SELECT * FROM incidents WHERE ext_source = ? AND ext_ref = ?").get(external.source, external.reference) as
+            Record<string, any> | undefined;
           if (same) {
             log(same.id, "note", `Reported again by ${external.source}${summary ? `: ${summary}` : "."}`, actor);
             touch(same.id);
@@ -174,11 +207,11 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
           }
         }
         const id = randomUUID();
-        const number = ((db.prepare("SELECT COALESCE(MAX(number), 0) AS n FROM incidents").get() as { n: number }).n) + 1;
+        const number = (db.prepare("SELECT COALESCE(MAX(number), 0) AS n FROM incidents").get() as { n: number }).n + 1;
         const at = now();
-        db.prepare("INSERT INTO incidents (id, number, title, severity, status, commander, summary, products, ext_source, ext_ref, created_at, updated_at) VALUES (?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?)").run(
-          id, number, title, severity, commander, summary, JSON.stringify(products), external?.source ?? null, external?.reference ?? null, at, at,
-        );
+        db.prepare(
+          "INSERT INTO incidents (id, number, title, severity, status, commander, summary, products, ext_source, ext_ref, created_at, updated_at) VALUES (?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?)",
+        ).run(id, number, title, severity, commander, summary, JSON.stringify(products), external?.source ?? null, external?.reference ?? null, at, at);
         log(id, "note", external ? `Opened by ${external.source}.` : "Incident opened.", actor);
         db.exec("COMMIT");
         return { created: true, incident: detail(row(id)) };
@@ -202,7 +235,9 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
       }
       const offset = decodeCursor(cursor);
       const rows = db
-        .prepare(`SELECT * FROM incidents ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY (status = 'resolved'), ${RANK_SQL} DESC, created_at DESC LIMIT ? OFFSET ?`)
+        .prepare(
+          `SELECT * FROM incidents ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY (status = 'resolved'), ${RANK_SQL} DESC, created_at DESC LIMIT ? OFFSET ?`,
+        )
         .all(...args, limit + 1, offset) as Array<Record<string, any>>;
       return { items: rows.slice(0, limit).map(present), ...(rows.length > limit && { nextCursor: encodeCursor(offset + limit) }) };
     },
@@ -262,7 +297,14 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
     addTask(id: string, body: Record<string, unknown>) {
       const r = row(id);
       exact(body, ["title", "owner", "due"]);
-      db.prepare("INSERT INTO tasks (id, incident_id, title, owner, due, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(randomUUID(), r.id, str(body.title, "title", 1, 300), optStr(body.owner, "owner", 100), dueDate(body.due), now());
+      db.prepare("INSERT INTO tasks (id, incident_id, title, owner, due, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+        randomUUID(),
+        r.id,
+        str(body.title, "title", 1, 300),
+        optStr(body.owner, "owner", 100),
+        dueDate(body.due),
+        now(),
+      );
       touch(r.id);
       return detail(row(r.id));
     },
@@ -297,7 +339,14 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
       exact(body, ["title", "url", "source"]);
       const source = body.source === undefined || body.source === null ? null : str(body.source, "source", 1, 40);
       if (source !== null && !PRODUCT.test(source)) throw bad('source is the product the evidence lives in, such as "logs".');
-      db.prepare("INSERT INTO evidence (id, incident_id, title, url, source, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(randomUUID(), r.id, str(body.title, "title", 1, 200), webUrl(body.url), source, now());
+      db.prepare("INSERT INTO evidence (id, incident_id, title, url, source, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+        randomUUID(),
+        r.id,
+        str(body.title, "title", 1, 200),
+        webUrl(body.url),
+        source,
+        now(),
+      );
       touch(r.id);
       return detail(row(r.id));
     },
@@ -316,7 +365,8 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
       const text = str(body.body, "body", 0, 50_000);
       const status = body.status === undefined ? "draft" : oneOf(body.status, "status", ["draft", "published"] as const);
       if (status === "published" && text.length < 10) throw bad("A published postmortem needs a body.");
-      const before = db.prepare("SELECT status, published_at FROM postmortems WHERE incident_id = ?").get(r.id) as { status: string; published_at: string | null } | undefined;
+      const before = db.prepare("SELECT status, published_at FROM postmortems WHERE incident_id = ?").get(r.id) as
+        { status: string; published_at: string | null } | undefined;
       const publishedAt = status === "published" ? (before?.published_at ?? now()) : null;
       db.prepare(
         `INSERT INTO postmortems (incident_id, body, status, updated_at, updated_by, published_at) VALUES (?, ?, ?, ?, ?, ?)
@@ -329,10 +379,24 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
 
     summary() {
       const open = { critical: 0, high: 0, medium: 0, low: 0 } as Record<Severity, number>;
-      for (const r of db.prepare("SELECT severity, COUNT(*) AS n FROM incidents WHERE status <> 'resolved' GROUP BY severity").all() as Array<{ severity: Severity; n: number }>) open[r.severity] = r.n;
+      for (const r of db.prepare("SELECT severity, COUNT(*) AS n FROM incidents WHERE status <> 'resolved' GROUP BY severity").all() as Array<{
+        severity: Severity;
+        n: number;
+      }>)
+        open[r.severity] = r.n;
       const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
-      const mttr = db.prepare("SELECT AVG((julianday(resolved_at) - julianday(created_at)) * 1440) AS m, COUNT(*) AS n FROM incidents WHERE resolved_at IS NOT NULL AND resolved_at > ?").get(since) as { m: number | null; n: number };
-      const awaiting = (db.prepare("SELECT COUNT(*) AS n FROM incidents i WHERE status = 'resolved' AND NOT EXISTS (SELECT 1 FROM postmortems p WHERE p.incident_id = i.id AND p.status = 'published')").get() as { n: number }).n;
+      const mttr = db
+        .prepare(
+          "SELECT AVG((julianday(resolved_at) - julianday(created_at)) * 1440) AS m, COUNT(*) AS n FROM incidents WHERE resolved_at IS NOT NULL AND resolved_at > ?",
+        )
+        .get(since) as { m: number | null; n: number };
+      const awaiting = (
+        db
+          .prepare(
+            "SELECT COUNT(*) AS n FROM incidents i WHERE status = 'resolved' AND NOT EXISTS (SELECT 1 FROM postmortems p WHERE p.incident_id = i.id AND p.status = 'published')",
+          )
+          .get() as { n: number }
+      ).n;
       return {
         open,
         total: (db.prepare("SELECT COUNT(*) AS n FROM incidents").get() as { n: number }).n,

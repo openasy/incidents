@@ -18,7 +18,8 @@ export async function startApp(opts: Partial<AppOptions> & { version: string }) 
   const base = `http://localhost:${(server.address() as AddressInfo).port}`;
   const auth = createAuth({ db, product: "incidents", productName: "OpenAsy Incidents", origin: base });
   handler = createApp({ db, incidents, auth, adminToken: ADMIN_TOKEN, ...opts });
-  const admin = (path: string, init: RequestInit = {}) => fetch(base + path, { ...init, headers: { authorization: `Bearer ${ADMIN_TOKEN}`, "content-type": "application/json", ...init.headers } });
+  const admin = (path: string, init: RequestInit = {}) =>
+    fetch(base + path, { ...init, headers: { authorization: `Bearer ${ADMIN_TOKEN}`, "content-type": "application/json", ...init.headers } });
   const send = (method: string, path: string, body?: unknown) => admin(path, { method, ...(body !== undefined && { body: JSON.stringify(body) }) });
   const close = () => new Promise<void>((resolve) => server.close(() => resolve()));
   return { db, incidents, auth, base, admin, send, close };

@@ -8,7 +8,17 @@ import { AuthError, mergeOpenApi, sendProblem, type Auth, type Role } from "@ope
 import { log } from "./log.ts";
 import { countRequest, renderMetrics } from "./metrics.ts";
 import type { ProductLink } from "./products.ts";
-import { IncidentsError, parseLimit, SEVERITIES, STATUSES, type IncidentFilter, type Incidents, type ProblemCode, type Severity, type Status } from "./incidents.ts";
+import {
+  IncidentsError,
+  parseLimit,
+  SEVERITIES,
+  STATUSES,
+  type IncidentFilter,
+  type Incidents,
+  type ProblemCode,
+  type Severity,
+  type Status,
+} from "./incidents.ts";
 
 export interface AppOptions {
   db: DatabaseSync;
@@ -66,7 +76,8 @@ function send(res: ServerResponse, status: number, body: string | Buffer, type =
   res.end(body);
 }
 
-const json = (res: ServerResponse, status: number, data: unknown, headers?: Record<string, string>) => send(res, status, JSON.stringify(data), "application/json", headers);
+const json = (res: ServerResponse, status: number, data: unknown, headers?: Record<string, string>) =>
+  send(res, status, JSON.stringify(data), "application/json", headers);
 
 const TITLES: Record<ProblemCode, string> = {
   "invalid-token": "Invalid token",
@@ -118,7 +129,8 @@ async function readBody(req: IncomingMessage, limit: number): Promise<Buffer> {
 
 async function readJson(req: IncomingMessage, limit = 64 * 1024): Promise<Record<string, unknown>> {
   const raw = await readBody(req, limit).catch((err: unknown) => {
-    if (err instanceof IncidentsError && err.code === "payload-too-large") throw new IncidentsError(400, "invalid-json", `The body must be JSON, at most ${Math.round(limit / 1024)} KiB.`);
+    if (err instanceof IncidentsError && err.code === "payload-too-large")
+      throw new IncidentsError(400, "invalid-json", `The body must be JSON, at most ${Math.round(limit / 1024)} KiB.`);
     throw err;
   });
   try {
@@ -158,9 +170,11 @@ interface Route {
 
 function incidentFilter(url: URL): IncidentFilter {
   const status = url.searchParams.get("status") ?? undefined;
-  if (status !== undefined && status !== "active" && !STATUSES.includes(status as Status)) throw new IncidentsError(422, "invalid-body", `status must be active or one of ${STATUSES.join(", ")}.`);
+  if (status !== undefined && status !== "active" && !STATUSES.includes(status as Status))
+    throw new IncidentsError(422, "invalid-body", `status must be active or one of ${STATUSES.join(", ")}.`);
   const severity = url.searchParams.get("severity")?.split(",").filter(Boolean) as Severity[] | undefined;
-  if (severity?.some((s) => !SEVERITIES.includes(s))) throw new IncidentsError(422, "invalid-body", `severity is a comma-separated list of ${SEVERITIES.join(", ")}.`);
+  if (severity?.some((s) => !SEVERITIES.includes(s)))
+    throw new IncidentsError(422, "invalid-body", `severity is a comma-separated list of ${SEVERITIES.join(", ")}.`);
   const q = url.searchParams.get("q")?.trim();
   if (q && q.length > 128) throw new IncidentsError(422, "invalid-body", "q must be at most 128 characters.");
   const product = url.searchParams.get("product") ?? undefined;
@@ -176,7 +190,8 @@ export function createApp({ db, incidents, version, auth, adminToken, webDir, do
   };
   const cursor = (url: URL) => url.searchParams.get("cursor") ?? undefined;
   const limit = (url: URL) => parseLimit(url.searchParams.get("limit"));
-  const page = <K extends string, T>(key: K, p: { items: T[]; nextCursor?: string }) => ({ [key]: p.items, ...(p.nextCursor && { nextCursor: p.nextCursor }) }) as Record<K, T[]> & { nextCursor?: string };
+  const page = <K extends string, T>(key: K, p: { items: T[]; nextCursor?: string }) =>
+    ({ [key]: p.items, ...(p.nextCursor && { nextCursor: p.nextCursor }) }) as Record<K, T[]> & { nextCursor?: string };
 
   const routes: Route[] = [
     { method: "GET", path: "/api/v1/version", auth: "none", handle: () => ({ product: "incidents", version }) },
@@ -194,18 +209,63 @@ export function createApp({ db, incidents, version, auth, adminToken, webDir, do
         json(res, created ? 201 : 200, incident, { location: `/api/v1/incidents/${incident.id}` });
       },
     },
-    { method: "GET", path: "/api/v1/incidents", auth: "viewer", handle: ({ url }) => page("incidents", incidents.list(incidentFilter(url), cursor(url), limit(url))) },
+    {
+      method: "GET",
+      path: "/api/v1/incidents",
+      auth: "viewer",
+      handle: ({ url }) => page("incidents", incidents.list(incidentFilter(url), cursor(url), limit(url))),
+    },
     { method: "GET", path: "/api/v1/incidents/:id", auth: "viewer", handle: ({ params }) => incidents.get(params[0]!) },
-    { method: "PATCH", path: "/api/v1/incidents/:id", auth: "editor", handle: async ({ params, body, actor }) => incidents.update(params[0]!, await body(), actor()) },
+    {
+      method: "PATCH",
+      path: "/api/v1/incidents/:id",
+      auth: "editor",
+      handle: async ({ params, body, actor }) => incidents.update(params[0]!, await body(), actor()),
+    },
     { method: "DELETE", path: "/api/v1/incidents/:id", auth: "admin", handle: ({ res, params }) => (incidents.delete(params[0]!), noContent(res)) },
 
-    { method: "POST", path: "/api/v1/incidents/:id/timeline", auth: "editor", handle: async ({ res, params, body, actor }) => json(res, 201, incidents.addTimeline(params[0]!, await body(), actor())) },
-    { method: "POST", path: "/api/v1/incidents/:id/tasks", auth: "editor", handle: async ({ res, params, body }) => json(res, 201, incidents.addTask(params[0]!, await body())) },
-    { method: "PATCH", path: "/api/v1/incidents/:id/tasks/:taskId", auth: "editor", handle: async ({ params, body, actor }) => incidents.updateTask(params[0]!, params[1]!, await body(), actor()) },
-    { method: "DELETE", path: "/api/v1/incidents/:id/tasks/:taskId", auth: "editor", handle: ({ res, params }) => (incidents.deleteTask(params[0]!, params[1]!), noContent(res)) },
-    { method: "POST", path: "/api/v1/incidents/:id/evidence", auth: "editor", handle: async ({ res, params, body }) => json(res, 201, incidents.addEvidence(params[0]!, await body())) },
-    { method: "DELETE", path: "/api/v1/incidents/:id/evidence/:evidenceId", auth: "editor", handle: ({ res, params }) => (incidents.deleteEvidence(params[0]!, params[1]!), noContent(res)) },
-    { method: "PUT", path: "/api/v1/incidents/:id/postmortem", auth: "editor", handle: async ({ params, body, actor }) => incidents.putPostmortem(params[0]!, await body(), actor()) },
+    {
+      method: "POST",
+      path: "/api/v1/incidents/:id/timeline",
+      auth: "editor",
+      handle: async ({ res, params, body, actor }) => json(res, 201, incidents.addTimeline(params[0]!, await body(), actor())),
+    },
+    {
+      method: "POST",
+      path: "/api/v1/incidents/:id/tasks",
+      auth: "editor",
+      handle: async ({ res, params, body }) => json(res, 201, incidents.addTask(params[0]!, await body())),
+    },
+    {
+      method: "PATCH",
+      path: "/api/v1/incidents/:id/tasks/:taskId",
+      auth: "editor",
+      handle: async ({ params, body, actor }) => incidents.updateTask(params[0]!, params[1]!, await body(), actor()),
+    },
+    {
+      method: "DELETE",
+      path: "/api/v1/incidents/:id/tasks/:taskId",
+      auth: "editor",
+      handle: ({ res, params }) => (incidents.deleteTask(params[0]!, params[1]!), noContent(res)),
+    },
+    {
+      method: "POST",
+      path: "/api/v1/incidents/:id/evidence",
+      auth: "editor",
+      handle: async ({ res, params, body }) => json(res, 201, incidents.addEvidence(params[0]!, await body())),
+    },
+    {
+      method: "DELETE",
+      path: "/api/v1/incidents/:id/evidence/:evidenceId",
+      auth: "editor",
+      handle: ({ res, params }) => (incidents.deleteEvidence(params[0]!, params[1]!), noContent(res)),
+    },
+    {
+      method: "PUT",
+      path: "/api/v1/incidents/:id/postmortem",
+      auth: "editor",
+      handle: async ({ params, body, actor }) => incidents.putPostmortem(params[0]!, await body(), actor()),
+    },
   ];
 
   const compiled = routes.map((r) => ({ ...r, re: new RegExp(`^${r.path.replace(/:[A-Za-z]+/g, "([^/]+)")}$`) }));

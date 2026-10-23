@@ -58,9 +58,12 @@ metricsServer?.listen(metricsPort, () => log("info", "metrics on their own port"
 
 server.listen(port, () => log("info", "incidents started", { version, port, db: dbPath, headless, retentionDays }));
 if (!publicUrl.startsWith("https://") && !/^http:\/\/(localhost|127\.0\.0\.1)(:|$)/.test(publicUrl)) {
-  log("warn", "INCIDENTS_PUBLIC_URL is not https: browsers will not keep secure cookies or allow passkeys. Put incidents behind TLS (ADR 0026)", { url: publicUrl });
+  log("warn", "INCIDENTS_PUBLIC_URL is not https: browsers will not keep secure cookies or allow passkeys. Put incidents behind TLS (ADR 0026)", {
+    url: publicUrl,
+  });
 }
-if (auth.secretsInClear) log("warn", "no secrets key: TOTP secrets are stored unencrypted. Mount a 32-byte key (openssl rand -hex 32)", { file: secretsKeyFile });
+if (auth.secretsInClear)
+  log("warn", "no secrets key: TOTP secrets are stored unencrypted. Mount a 32-byte key (openssl rand -hex 32)", { file: secretsKeyFile });
 const setup = auth.setupLink();
 // No default password (ADR 0013): the first person to open this link becomes the owner.
 if (setup) log("info", "no owner yet: open this link once to create the owner account", { url: setup });

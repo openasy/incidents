@@ -45,7 +45,9 @@ async function call(method: string, path: string, init: RequestInit = {}, concre
   // A response is either inline or a $ref to components/responses; build the JSON pointer to its schema either way.
   const shared = declared!.$ref?.split("/").pop();
   const response = shared ? spec.components.responses[shared]! : declared!;
-  const at = shared ? `openapi#/components/responses/${shared}` : `openapi#/paths/${path.replaceAll("/", "~1")}/${method.toLowerCase()}/responses/${res.status}`;
+  const at = shared
+    ? `openapi#/components/responses/${shared}`
+    : `openapi#/paths/${path.replaceAll("/", "~1")}/${method.toLowerCase()}/responses/${res.status}`;
 
   if (!response.content) {
     expect(res.headers.get("content-length") ?? "0", `${method} ${path} ${res.status} should have no body`).toBe("0");
@@ -61,7 +63,10 @@ async function call(method: string, path: string, init: RequestInit = {}, concre
   return { res, body };
 }
 
-const auth = (token: string, body?: string, type = "application/json") => ({ headers: { authorization: `Bearer ${token}`, "content-type": type }, ...(body !== undefined && { body }) });
+const auth = (token: string, body?: string, type = "application/json") => ({
+  headers: { authorization: `Bearer ${token}`, "content-type": type },
+  ...(body !== undefined && { body }),
+});
 const admin = (body?: unknown) => auth(ADMIN_TOKEN, body === undefined ? undefined : typeof body === "string" ? body : JSON.stringify(body));
 
 describe("openapi.json", () => {
@@ -101,7 +106,13 @@ describe("responses match openapi.json", () => {
   });
 
   it("opening and listing", async () => {
-    const created = (await call("POST", "/api/v1/incidents", admin({ title: "Checkout is down", severity: "critical", commander: "Aylin", products: ["logs"], external: { source: "siem", reference: "sig-1" } }))).body as { id: string; key: string };
+    const created = (
+      await call(
+        "POST",
+        "/api/v1/incidents",
+        admin({ title: "Checkout is down", severity: "critical", commander: "Aylin", products: ["logs"], external: { source: "siem", reference: "sig-1" } }),
+      )
+    ).body as { id: string; key: string };
     key = created.key;
     await call("POST", "/api/v1/incidents", admin({ title: "Checkout is down", external: { source: "siem", reference: "sig-1" } }));
     await call("POST", "/api/v1/incidents", admin({ title: "x" }));
@@ -127,7 +138,9 @@ describe("responses match openapi.json", () => {
     await call("POST", "/api/v1/incidents/{id}/timeline", admin({ text: "x" }), `${inc("INC-99")}/timeline`);
     await call("POST", "/api/v1/incidents/{id}/timeline", { method: "POST" }, `${inc(key)}/timeline`);
 
-    const withTask = (await call("POST", "/api/v1/incidents/{id}/tasks", admin({ title: "Roll back", owner: "Mert", due: "2030-01-01T00:00:00Z" }), `${inc(key)}/tasks`)).body as { tasks: Array<{ id: string }> };
+    const withTask = (
+      await call("POST", "/api/v1/incidents/{id}/tasks", admin({ title: "Roll back", owner: "Mert", due: "2030-01-01T00:00:00Z" }), `${inc(key)}/tasks`)
+    ).body as { tasks: Array<{ id: string }> };
     task = withTask.tasks[0]!.id;
     await call("POST", "/api/v1/incidents/{id}/tasks", admin({}), `${inc(key)}/tasks`);
     await call("POST", "/api/v1/incidents/{id}/tasks", { method: "POST" }, `${inc(key)}/tasks`);
@@ -136,7 +149,14 @@ describe("responses match openapi.json", () => {
     await call("PATCH", "/api/v1/incidents/{id}/tasks/{taskId}", admin({ done: true }), `${inc(key)}/tasks/missing`);
     await call("PATCH", "/api/v1/incidents/{id}/tasks/{taskId}", { method: "PATCH" }, `${inc(key)}/tasks/${task}`);
 
-    const withEvidence = (await call("POST", "/api/v1/incidents/{id}/evidence", admin({ title: "Error rate", url: "https://logs.example.com/q/1", source: "logs" }), `${inc(key)}/evidence`)).body as { evidence: Array<{ id: string }> };
+    const withEvidence = (
+      await call(
+        "POST",
+        "/api/v1/incidents/{id}/evidence",
+        admin({ title: "Error rate", url: "https://logs.example.com/q/1", source: "logs" }),
+        `${inc(key)}/evidence`,
+      )
+    ).body as { evidence: Array<{ id: string }> };
     evidence = withEvidence.evidence[0]!.id;
     await call("POST", "/api/v1/incidents/{id}/evidence", admin({ title: "Bad", url: "javascript:alert(1)" }), `${inc(key)}/evidence`);
     await call("POST", "/api/v1/incidents/{id}/evidence", { method: "POST" }, `${inc(key)}/evidence`);

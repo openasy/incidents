@@ -14,14 +14,24 @@ const status = (p: Promise<Response>) => p.then((r) => r.status);
 describe("opening and listing", () => {
   it("numbers incidents in order and writes the first timeline entry", async () => {
     const a = await open({ title: "Checkout is down", severity: "critical", commander: "Aylin", products: ["uptime", "logs"] });
-    expect(a).toMatchObject({ key: "INC-1", number: 1, status: "open", severity: "critical", commander: "Aylin", products: ["uptime", "logs"], external: null, openTasks: 0, resolvedAt: null });
+    expect(a).toMatchObject({
+      key: "INC-1",
+      number: 1,
+      status: "open",
+      severity: "critical",
+      commander: "Aylin",
+      products: ["uptime", "logs"],
+      external: null,
+      openTasks: 0,
+      resolvedAt: null,
+    });
     expect(a.timeline).toMatchObject([{ kind: "note", text: "Incident opened.", author: "admin token" }]);
     const b = await open({ title: "Slow reports" });
     expect(b).toMatchObject({ key: "INC-2", severity: "medium", commander: null, summary: "" });
   });
 
   it("finds an incident by its id or its INC number", async () => {
-    const a = (await json(await app.send("GET", "/api/v1/incidents/INC-1")));
+    const a = await json(await app.send("GET", "/api/v1/incidents/INC-1"));
     expect(a.title).toBe("Checkout is down");
     expect((await json(await app.send("GET", `/api/v1/incidents/${a.id}`))).key).toBe("INC-1");
     expect((await json(await app.send("GET", "/api/v1/incidents/inc-2"))).key).toBe("INC-2");
@@ -42,11 +52,20 @@ describe("opening and listing", () => {
     const page = await json(await app.send("GET", "/api/v1/incidents?limit=2"));
     expect(page.incidents).toHaveLength(2);
     expect((await json(await app.send("GET", `/api/v1/incidents?limit=2&cursor=${page.nextCursor}`))).incidents).toHaveLength(1);
-    for (const bad of ["status=gone", "severity=urgent", "product=BAD", "limit=0", "cursor=junk"]) expect(await status(app.send("GET", `/api/v1/incidents?${bad}`))).toBe(422);
+    for (const bad of ["status=gone", "severity=urgent", "product=BAD", "limit=0", "cursor=junk"])
+      expect(await status(app.send("GET", `/api/v1/incidents?${bad}`))).toBe(422);
   });
 
   it("refuses what is not an incident", async () => {
-    for (const body of [{}, { title: "ab" }, { title: "ok title", severity: "urgent" }, { title: "ok title", products: ["Bad Id"] }, { title: "ok title", extra: 1 }, { title: "ok title", external: "x" }, { title: "ok title", external: { source: "siem" } }]) {
+    for (const body of [
+      {},
+      { title: "ab" },
+      { title: "ok title", severity: "urgent" },
+      { title: "ok title", products: ["Bad Id"] },
+      { title: "ok title", extra: 1 },
+      { title: "ok title", external: "x" },
+      { title: "ok title", external: { source: "siem" } },
+    ]) {
       expect(await status(app.send("POST", "/api/v1/incidents", body)), JSON.stringify(body)).toBe(422);
     }
     expect(await status(app.admin("/api/v1/incidents", { method: "POST", body: "{nope" }))).toBe(400);
@@ -55,12 +74,20 @@ describe("opening and listing", () => {
 
 describe("another product reports", () => {
   it("opens one incident for the same source and reference, and adds to its timeline the second time", async () => {
-    const first = await app.send("POST", "/api/v1/incidents", { title: "Brute force on vpn", severity: "high", external: { source: "siem", reference: "sig-42" } });
+    const first = await app.send("POST", "/api/v1/incidents", {
+      title: "Brute force on vpn",
+      severity: "high",
+      external: { source: "siem", reference: "sig-42" },
+    });
     expect(first.status).toBe(201);
     const a = await json(first);
     expect(a.external).toEqual({ source: "siem", reference: "sig-42" });
     expect(a.timeline[0].text).toBe("Opened by siem.");
-    const second = await app.send("POST", "/api/v1/incidents", { title: "Brute force on vpn", external: { source: "siem", reference: "sig-42" }, summary: "40 more failures" });
+    const second = await app.send("POST", "/api/v1/incidents", {
+      title: "Brute force on vpn",
+      external: { source: "siem", reference: "sig-42" },
+      summary: "40 more failures",
+    });
     expect(second.status).toBe(200);
     const b = await json(second);
     expect(b.id).toBe(a.id);
@@ -90,15 +117,19 @@ describe("running an incident", () => {
   });
 
   it("refuses bad changes", async () => {
-    for (const body of [{}, { status: "closed" }, { severity: "urgent" }, { title: "x" }, { products: "siem" }, { extra: 1 }]) expect(await status(app.send("PATCH", "/api/v1/incidents/INC-2", body)), JSON.stringify(body)).toBe(422);
+    for (const body of [{}, { status: "closed" }, { severity: "urgent" }, { title: "x" }, { products: "siem" }, { extra: 1 }])
+      expect(await status(app.send("PATCH", "/api/v1/incidents/INC-2", body)), JSON.stringify(body)).toBe(422);
     expect(await status(app.send("PATCH", "/api/v1/incidents/INC-99", { status: "open" }))).toBe(404);
   });
 
   it("keeps notes and links, which nobody can edit", async () => {
     const r = await json(await app.send("POST", "/api/v1/incidents/INC-2/timeline", { text: "Looking at the report queue" }));
     expect(r.timeline.at(-1)).toMatchObject({ kind: "note", text: "Looking at the report queue", author: "admin token" });
-    expect((await json(await app.send("POST", "/api/v1/incidents/INC-2/timeline", { kind: "link", text: "https://logs.example.com/q/1" }))).timeline.at(-1).kind).toBe("link");
-    for (const body of [{}, { text: "" }, { kind: "status-change", text: "I did it" }, { text: "x", at: "2020-01-01" }]) expect(await status(app.send("POST", "/api/v1/incidents/INC-2/timeline", body)), JSON.stringify(body)).toBe(422);
+    expect(
+      (await json(await app.send("POST", "/api/v1/incidents/INC-2/timeline", { kind: "link", text: "https://logs.example.com/q/1" }))).timeline.at(-1).kind,
+    ).toBe("link");
+    for (const body of [{}, { text: "" }, { kind: "status-change", text: "I did it" }, { text: "x", at: "2020-01-01" }])
+      expect(await status(app.send("POST", "/api/v1/incidents/INC-2/timeline", body)), JSON.stringify(body)).toBe(422);
   });
 
   it("tracks tasks, and writes a finished one to the timeline once", async () => {
@@ -122,9 +153,17 @@ describe("running an incident", () => {
   });
 
   it("keeps links to evidence and never fetches or stores what they point at", async () => {
-    const r = await json(await app.send("POST", "/api/v1/incidents/INC-2/evidence", { title: "Slow query log", url: "https://logs.example.com/q/7", source: "logs" }));
+    const r = await json(
+      await app.send("POST", "/api/v1/incidents/INC-2/evidence", { title: "Slow query log", url: "https://logs.example.com/q/7", source: "logs" }),
+    );
     expect(r.evidence).toMatchObject([{ title: "Slow query log", url: "https://logs.example.com/q/7", source: "logs" }]);
-    for (const body of [{ title: "x", url: "javascript:alert(1)" }, { title: "x", url: "https://u:p@example.com" }, { title: "x", url: "nope" }, { title: "", url: "https://a.example.com" }, { title: "x", url: "https://a.example.com", source: "Bad Source" }]) {
+    for (const body of [
+      { title: "x", url: "javascript:alert(1)" },
+      { title: "x", url: "https://u:p@example.com" },
+      { title: "x", url: "nope" },
+      { title: "", url: "https://a.example.com" },
+      { title: "x", url: "https://a.example.com", source: "Bad Source" },
+    ]) {
       expect(await status(app.send("POST", "/api/v1/incidents/INC-2/evidence", body)), JSON.stringify(body)).toBe(422);
     }
     expect(await status(app.send("DELETE", `/api/v1/incidents/INC-2/evidence/${r.evidence[0].id}`))).toBe(204);
@@ -139,11 +178,21 @@ describe("postmortem", () => {
     expect(ok.postmortem).toMatchObject({ body: "A bad deploy removed the cart index.", status: "draft", updatedBy: "admin token", publishedAt: null });
     expect(await status(app.send("PUT", "/api/v1/incidents/INC-1/postmortem", { body: "short", status: "published" }))).toBe(422);
     expect(await status(app.send("PUT", "/api/v1/incidents/INC-1/postmortem", { body: "x", status: "final" }))).toBe(422);
-    const pub = await json(await app.send("PUT", "/api/v1/incidents/INC-1/postmortem", { body: "A bad deploy removed the cart index. We now test migrations.", status: "published" }));
+    const pub = await json(
+      await app.send("PUT", "/api/v1/incidents/INC-1/postmortem", {
+        body: "A bad deploy removed the cart index. We now test migrations.",
+        status: "published",
+      }),
+    );
     expect(pub.postmortem.publishedAt).toEqual(expect.any(String));
     expect(pub.timeline.at(-1).text).toBe("Postmortem published.");
     // Editing a published one keeps when it was first published and writes no second entry.
-    const edit = await json(await app.send("PUT", "/api/v1/incidents/INC-1/postmortem", { body: "A bad deploy removed the cart index. We now test migrations in CI.", status: "published" }));
+    const edit = await json(
+      await app.send("PUT", "/api/v1/incidents/INC-1/postmortem", {
+        body: "A bad deploy removed the cart index. We now test migrations in CI.",
+        status: "published",
+      }),
+    );
     expect(edit.postmortem.publishedAt).toBe(pub.postmortem.publishedAt);
     expect(edit.timeline.filter((t: { text: string }) => t.text === "Postmortem published.")).toHaveLength(1);
   });
@@ -151,7 +200,9 @@ describe("postmortem", () => {
 
 describe("summary, deleting and access", () => {
   it("counts open incidents by severity, the mean time to resolve and postmortems owed", async () => {
-    app.db.prepare("UPDATE incidents SET created_at = ?, resolved_at = ? WHERE number = 1").run("2026-10-01T10:00:00.000Z", new Date(Date.now() - 86_400_000).toISOString());
+    app.db
+      .prepare("UPDATE incidents SET created_at = ?, resolved_at = ? WHERE number = 1")
+      .run("2026-10-01T10:00:00.000Z", new Date(Date.now() - 86_400_000).toISOString());
     app.db.prepare("UPDATE incidents SET created_at = ? WHERE number = 1").run(new Date(Date.now() - 86_400_000 - 120 * 60_000).toISOString());
     const s = await json(await app.send("GET", "/api/v1/summary"));
     expect(s).toMatchObject({ total: 5, open: { critical: 0, high: 2, medium: 2, low: 0 }, resolved90d: 1, meanMinutesToResolve: 120, awaitingPostmortem: 0 });
@@ -168,7 +219,14 @@ describe("summary, deleting and access", () => {
   });
 
   it("asks everyone to sign in or send an API token", async () => {
-    for (const [m, p] of [["GET", "/api/v1/incidents"], ["POST", "/api/v1/incidents"], ["GET", "/api/v1/incidents/INC-1"], ["PATCH", "/api/v1/incidents/INC-1"], ["DELETE", "/api/v1/incidents/INC-1"], ["GET", "/api/v1/summary"]]) {
+    for (const [m, p] of [
+      ["GET", "/api/v1/incidents"],
+      ["POST", "/api/v1/incidents"],
+      ["GET", "/api/v1/incidents/INC-1"],
+      ["PATCH", "/api/v1/incidents/INC-1"],
+      ["DELETE", "/api/v1/incidents/INC-1"],
+      ["GET", "/api/v1/summary"],
+    ]) {
       expect((await fetch(app.base + p, { method: m })).status, `${m} ${p}`).toBe(401);
     }
     expect((await fetch(`${app.base}/api/v1/incidents`, { headers: { authorization: "Bearer nope" } })).status).toBe(401);

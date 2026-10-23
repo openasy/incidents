@@ -24,12 +24,21 @@ describe("openDb", () => {
       INSERT INTO evidence (id, incident_id, title, url, created_at) VALUES ('e', 'i', 't', 'https://x.example.com', 'now');
       INSERT INTO postmortems VALUES ('i', 'b', 'draft', 'now', 'a', NULL);
       DELETE FROM incidents`);
-    expect(db.prepare("SELECT (SELECT COUNT(*) FROM timeline) + (SELECT COUNT(*) FROM tasks) + (SELECT COUNT(*) FROM evidence) + (SELECT COUNT(*) FROM postmortems) AS n").get()).toEqual({ n: 0 });
+    expect(
+      db
+        .prepare(
+          "SELECT (SELECT COUNT(*) FROM timeline) + (SELECT COUNT(*) FROM tasks) + (SELECT COUNT(*) FROM evidence) + (SELECT COUNT(*) FROM postmortems) AS n",
+        )
+        .get(),
+    ).toEqual({ n: 0 });
   });
 
   it("refuses a second incident for the same external report", () => {
     const db = openDb(":memory:");
-    const add = (n: number) => db.exec(`INSERT INTO incidents (id, number, title, severity, status, ext_source, ext_ref, created_at, updated_at) VALUES ('i${n}', ${n}, 'x', 'high', 'open', 'siem', 'sig-1', 'now', 'now')`);
+    const add = (n: number) =>
+      db.exec(
+        `INSERT INTO incidents (id, number, title, severity, status, ext_source, ext_ref, created_at, updated_at) VALUES ('i${n}', ${n}, 'x', 'high', 'open', 'siem', 'sig-1', 'now', 'now')`,
+      );
     add(1);
     expect(() => add(2)).toThrow(/UNIQUE/);
   });
