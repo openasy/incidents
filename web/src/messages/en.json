@@ -1,0 +1,139 @@
+{
+  "products": {
+    "noneNamed": "None named"
+  },
+  "newIncidentDialog": {
+    "openAnIncident": "Open an incident",
+    "sayWhatIsWrongHow": "Say what is wrong, how bad it is, and who leads. Everything after this goes to the timeline.",
+    "cancel": "Cancel",
+    "openIncident": "Open incident",
+    "title": "Title",
+    "severity": "Severity",
+    "commander": "Commander",
+    "productsInvolved": "Products involved",
+    "productIdsSeparatedByCommas": "Product ids separated by commas, such as siem, vpn.",
+    "summary": "Summary"
+  },
+  "incidentsPage": {
+    "severity": "Severity",
+    "incident": "Incident",
+    "status": "Status",
+    "commander": "Commander",
+    "products": "Products",
+    "openTasks": "Open tasks",
+    "opened": "Opened",
+    "incidents": "Incidents",
+    "openKept": "{{openTotal}} open · {{total}} kept",
+    "searchIncidents": "Search incidents",
+    "openIncident": "Open incident",
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "meanTimeToResolve90": "Mean time to resolve, 90 days",
+    "waitingForAPostmortem": "Waiting for a postmortem",
+    "incidentViews": "Incident views",
+    "active": "Active",
+    "resolved": "Resolved",
+    "all": "All",
+    "loadMore": "Load more",
+    "noActiveIncidents": "No active incidents",
+    "noIncidents": "No incidents",
+    "nothingHasBeenOpenedYet": "Nothing has been opened yet. People open incidents here, and other products can with an API token: see",
+    "setup": "Setup",
+    "nothingMatchesTheseFilters": "Nothing matches these filters."
+  },
+  "timelinePanel": {
+    "timeline": "Timeline",
+    "whatHappenedInOrderNothing": "What happened, in order. Nothing here can be edited or deleted.",
+    "addANote": "Add a note",
+    "add": "Add"
+  },
+  "tasksPanel": {
+    "tasks": "Tasks",
+    "whatHasToBeDone": "What has to be done, and by whom. Finishing one writes it to the timeline.",
+    "noTasksYet": "No tasks yet.",
+    "deleteTheTask": "Delete the task {{title}}",
+    "newTask": "New task",
+    "owner": "Owner",
+    "add": "Add"
+  },
+  "evidencePanel": {
+    "evidence": "Evidence",
+    "linksToWhereTheEvidence": "Links to where the evidence lives, such as a saved search in Logs. Files are not kept here.",
+    "noEvidenceLinkedYet": "No evidence linked yet.",
+    "removeTheLink": "Remove the link {{title}}",
+    "title": "Title",
+    "address": "Address",
+    "product": "Product",
+    "suchAsLogs": "Such as logs.",
+    "add": "Add"
+  },
+  "postmortemPanel": {
+    "postmortem": "Postmortem",
+    "notYet": "Not yet",
+    "aPostmortemIsWrittenOnce": "A postmortem is written once the incident is resolved, so it can say how it ended.",
+    "whatHappenedWhyAndWhat": "What happened, why, and what changes. Markdown.",
+    "published": "Published",
+    "draft": "Draft",
+    "notWritten": "Not written",
+    "saveDraft": "Save draft",
+    "publish": "Publish",
+    "nothingHasBeenWrittenYet": "Nothing has been written yet."
+  },
+  "incidentPage": {
+    "incidentNotFound": "Incident not found",
+    "itMayHaveBeenDeleted": "It may have been deleted.",
+    "backToIncidents": "Back to incidents",
+    "incident": "Incident",
+    "opened": "Opened {{ago}}{{value}}{{value2}}",
+    "status": "Status",
+    "severity": "Severity",
+    "commander": "Commander",
+    "products": "Products",
+    "deleteIncident": "Delete incident",
+    "delete": "Delete {{key}}?",
+    "itsTimelineTasksEvidenceLinks": "Its timeline, tasks, evidence links and postmortem are deleted. Resolve it instead if you only want it closed.",
+    "cancel": "Cancel",
+    "delete2": "Delete",
+    "incidentSections": "Incident sections",
+    "timeline": "Timeline",
+    "tasks": "Tasks ({{openTasks}})",
+    "evidence": "Evidence",
+    "postmortem": "Postmortem"
+  },
+  "setupPage": {
+    "setup": "Setup",
+    "peopleOpenIncidentsHereOther": "People open incidents here. Other products can too, with an API token.",
+    "letAProductOpenIncidents": "Let a product open incidents",
+    "createAnApiTokenWith": "Create an API token with the editor role under API tokens. The same source and reference is one incident, however often it reports.",
+    "howAnIncidentRuns": "How an incident runs",
+    "openItWorkItResolve": "Open it, work it, resolve it, then learn from it.",
+    "aChangeOfStatusOr": "A change of status or severity is written to the timeline by itself, with who made it.",
+    "theTimelineIsAppendOnly": "The timeline is append-only: notes and links are added, nothing is edited or deleted.",
+    "evidenceIsALinkTo": "Evidence is a link to where it lives. Files are not kept here.",
+    "aPostmortemIsWrittenOnce": "A postmortem is written once the incident is resolved. Incidents without a published one are counted on the overview."
+  },
+  "settingsPage": {
+    "adminsOnly": "Admins only",
+    "askAnAdminOfThis": "Ask an admin of this incidents for access.",
+    "signOut": "Sign out"
+  },
+  "product": {
+    "incidents": "Incidents",
+    "setup": "Setup",
+    "members": "Members",
+    "signIn": "Sign-in",
+    "apiTokens": "API tokens",
+    "account": "Account"
+  },
+  "statuses": {
+    "open": "Open",
+    "investigating": "Investigating",
+    "mitigated": "Mitigated",
+    "resolved": "Resolved"
+  },
+  "kindLabel": {
+    "taskDone": "Task done"
+  }
+}
