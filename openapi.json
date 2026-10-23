@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "OpenAsy Incidents API",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "summary": "Run an incident: timeline, tasks, evidence and a postmortem.",
     "description": "Every screen of incidents uses this API, and so can your scripts and the other products (ADR 0014, 0023). Within `/api/v1` changes are additive only; anything removed is deprecated first (ADR 0024). Errors use Problem Details (RFC 9457).\n\nEverything takes the session of a signed-in person or an API token, and each operation names the role it needs (`x-openasy-role`: viewer, editor, admin; ADR 0003). Other products open incidents with an API token that has the editor role.\n\nSign-in, members and API tokens are under `/api/v1/auth`, provided by [@openasy/auth](https://github.com/openasy/auth#routes).",
     "license": {
