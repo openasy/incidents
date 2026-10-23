@@ -64,7 +64,7 @@ backups.
 | `INCIDENTS_RETENTION_DAYS` | `1095` | Resolved incidents older than this are deleted |
 | `INCIDENTS_METRICS_PORT` | | Serve `/metrics` on this port only (ADR 0026) |
 | `INCIDENTS_HEADLESS` | `false` | `true` serves only the API |
-| `INCIDENTS_PASSWORD_SIGN_IN`, `INCIDENTS_OIDC_*` | | Sign-in, as in every OpenAsy product ([@openasy/auth](https://github.com/openasy/auth)). Owners can also add identity providers under Settings, Sign-in |
+| `INCIDENTS_PASSWORD_SIGN_IN`, `OPENASY_OIDC_*` | | Sign-in, as in every OpenAsy product ([@openasy/auth](https://github.com/openasy/auth)). Owners can also add identity providers under Settings, Sign-in |
 
 The container runs as non-root with a read-only root filesystem, no capabilities and `no-new-privileges`.
 

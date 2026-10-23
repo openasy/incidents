@@ -21,9 +21,9 @@ services:
       # The address people open Incidents at; with a TLS proxy in front, its https:// URL.
       INCIDENTS_PUBLIC_URL: ${INCIDENTS_PUBLIC_URL:-http://localhost:8080}
       # Sign in with your identity provider (OIDC), see the README:
-      # INCIDENTS_OIDC_ISSUER: https://login.example.com
-      # INCIDENTS_OIDC_CLIENT_ID: incidents
-      # INCIDENTS_OIDC_CLIENT_SECRET: ${INCIDENTS_OIDC_CLIENT_SECRET}
+      # OPENASY_OIDC_ISSUER: https://login.example.com
+      # OPENASY_OIDC_CLIENT_ID: incidents
+      # OPENASY_OIDC_CLIENT_SECRET: ${OPENASY_OIDC_CLIENT_SECRET}
 
 volumes:
   incidents-data:
