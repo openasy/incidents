@@ -29,6 +29,7 @@ import {
   useAgo,
 } from "@openasy/ui";
 import { AccountSettings, AuthGate, MembersSettings, SignInSettings, TokensSettings, useAuth, useInstallBrand } from "@openasy/auth/react";
+import colophon from "virtual:openasy-colophon";
 import { KeyRound, LogIn, LogOut, Plus, Settings2, Siren, Trash2, UserRound, Users } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, MfaSetupRequired, Unauthorized, type Incident, type IncidentSummary, type ProductLink, type Severity, type Status, type Summary } from "./api.ts";
@@ -42,7 +43,7 @@ function duration(minutes: number | null): string {
   return h >= 48 ? `${Math.round(h / 24)} d` : `${h} h ${minutes % 60} min`;
 }
 
-const PAGES = ["setup", "account", "members", "signin", "tokens"] as const;
+const PAGES = ["setup", "account", "members", "signin", "tokens", "about"] as const;
 type Route = { page: "incidents" | (typeof PAGES)[number] } | { page: "incident"; id: string };
 /** The first path segments that are pages of this UI, for followLinks. */
 export const PATHS = ["incidents", ...PAGES];
@@ -820,6 +821,7 @@ function Product() {
   return (
     <AppShell
       product="incidents"
+      about={colophon}
       nav={nav}
       activeNav={active}
       onNavigate={(id) => navigate(`/${id}`)}
