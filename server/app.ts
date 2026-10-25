@@ -200,6 +200,7 @@ export function createApp({ db, incidents, version, auth, adminToken, webDir, do
     { method: "GET", path: "/api/v1/version", auth: "none", handle: () => ({ product: "incidents", version }) },
     { method: "GET", path: "/api/v1/products", auth: "viewer", handle: () => ({ products }) },
     { method: "GET", path: "/api/v1/summary", auth: "viewer", handle: () => incidents.summary() },
+    { method: "GET", path: "/api/v1/overview", auth: "viewer", handle: () => incidents.overview() },
 
     {
       // Other products open incidents here with an API token (ADR 0023). The same external source and reference

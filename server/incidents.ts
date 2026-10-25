@@ -377,6 +377,55 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
       return detail(row(r.id));
     },
 
+    /**
+     * What the overview draws besides the summary: incidents not resolved by status, the ones to look at now, open
+     * tasks, and the mean time to resolve the incidents resolved in each of the last 12 weeks.
+     */
+    overview() {
+      const byStatus = { open: 0, investigating: 0, mitigated: 0 };
+      for (const r of db.prepare("SELECT status, COUNT(*) AS n FROM incidents WHERE status <> 'resolved' GROUP BY status").all() as Array<{
+        status: keyof typeof byStatus;
+        n: number;
+      }>)
+        byStatus[r.status] = r.n;
+      const active = (
+        db
+          .prepare(
+            `SELECT i.id, i.number, i.title, i.severity, i.status, i.commander, i.created_at,
+               (SELECT COUNT(*) FROM tasks t WHERE t.incident_id = i.id AND t.done = 0) AS open_tasks
+             FROM incidents i WHERE i.status <> 'resolved'
+             ORDER BY CASE i.severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, i.created_at LIMIT 8`,
+          )
+          .all() as Array<Record<string, any>>
+      ).map((r) => ({
+        id: r.id as string,
+        number: r.number as number,
+        title: r.title as string,
+        severity: r.severity as Severity,
+        status: r.status as Status,
+        commander: (r.commander as string | null) ?? null,
+        createdAt: r.created_at as string,
+        openTasks: r.open_tasks as number,
+      }));
+      const openTasks = (
+        db.prepare("SELECT COUNT(*) AS n FROM tasks t JOIN incidents i ON i.id = t.incident_id WHERE t.done = 0 AND i.status <> 'resolved'").get() as {
+          n: number;
+        }
+      ).n;
+      const weeks = weekStarts(12).map((start) => ({ start, minutes: null as number | null }));
+      const from = Date.parse(weeks[0]!.start);
+      const sums = weeks.map(() => ({ total: 0, n: 0 }));
+      for (const r of db.prepare("SELECT created_at, resolved_at FROM incidents WHERE resolved_at >= ?").all(weeks[0]!.start) as Array<{
+        created_at: string;
+        resolved_at: string;
+      }>) {
+        const w = sums[Math.floor((Date.parse(r.resolved_at) - from) / WEEK)];
+        if (w) ((w.total += (Date.parse(r.resolved_at) - Date.parse(r.created_at)) / 60_000), w.n++);
+      }
+      weeks.forEach((w, i) => (w.minutes = sums[i]!.n ? Math.round(sums[i]!.total / sums[i]!.n) : null));
+      return { byStatus, active, openTasks, timeToResolve: weeks };
+    },
+
     summary() {
       const open = { critical: 0, high: 0, medium: 0, low: 0 } as Record<Severity, number>;
       for (const r of db.prepare("SELECT severity, COUNT(*) AS n FROM incidents WHERE status <> 'resolved' GROUP BY severity").all() as Array<{

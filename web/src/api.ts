@@ -97,3 +97,22 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   return (res.status === 204 ? undefined : await res.json()) as T;
 }
+
+/** What the overview draws besides the summary (GET /api/v1/overview). */
+export interface Overview {
+  byStatus: { open: number; investigating: number; mitigated: number };
+  /** Not resolved, worst severity then oldest first; eight at most. */
+  active: Array<{
+    id: string;
+    number: number;
+    title: string;
+    severity: Severity;
+    status: Status;
+    commander: string | null;
+    createdAt: string;
+    openTasks: number;
+  }>;
+  openTasks: number;
+  /** Mean minutes to resolve the incidents resolved in each of the last 12 weeks; null for a week without one. */
+  timeToResolve: Array<{ start: string; minutes: number | null }>;
+}

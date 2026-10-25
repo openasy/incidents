@@ -239,3 +239,29 @@ describe("summary, deleting and access", () => {
     expect((await fetch(`${app.base}/readyz`)).status).toBe(200);
   });
 });
+
+describe("the overview", () => {
+  let own: Awaited<ReturnType<typeof startApp>>;
+  beforeAll(async () => {
+    own = await startApp({ version: "0.1.0" });
+  });
+  afterAll(() => own.close());
+
+  it("lists what is not resolved, worst first, with open tasks and time to resolve", async () => {
+    const send = async (method: string, path: string, body?: unknown) => (await own.send(method, path, body)).json() as Promise<any>;
+    const low = await send("POST", "/api/v1/incidents", { title: "Slow reports", severity: "low" });
+    const crit = await send("POST", "/api/v1/incidents", { title: "Checkout is down", severity: "critical" });
+    const done = await send("POST", "/api/v1/incidents", { title: "Old one", severity: "high" });
+    await send("POST", `/api/v1/incidents/${crit.id}/tasks`, { title: "Roll back" });
+    await send("PATCH", `/api/v1/incidents/${low.id}`, { status: "investigating" });
+    await send("PATCH", `/api/v1/incidents/${done.id}`, { status: "resolved" });
+    const o = await send("GET", "/api/v1/overview");
+    expect(o.byStatus).toEqual({ open: 1, investigating: 1, mitigated: 0 });
+    expect(o.active.map((i: { title: string }) => i.title)).toEqual(["Checkout is down", "Slow reports"]);
+    expect(o.active[0]).toMatchObject({ number: crit.number, severity: "critical", status: "open", openTasks: 1 });
+    expect(o.openTasks).toBe(1);
+    expect(o.timeToResolve).toHaveLength(12);
+    expect(o.timeToResolve.at(-1).minutes).toBe(0);
+    expect(o.timeToResolve[0].minutes).toBeNull();
+  });
+});

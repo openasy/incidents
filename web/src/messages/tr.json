@@ -1,4 +1,18 @@
 {
+  "overviewPage": {
+    "overview": "Genel bakış",
+    "active": "Aktif",
+    "activeCaption": "aktif",
+    "bySeverity": "Öneme göre aktif",
+    "bySeverityDetail": "Henüz çözülmemiş olaylar.",
+    "timeToResolve": "Çözüm süresi",
+    "timeToResolveDetail": "Her hafta çözülen olaylar için açılıştan çözüme ortalama süre.",
+    "meanTime": "Ortalama süre",
+    "byStatus": "Durumları",
+    "byStatusDetail": "Henüz çözülmemiş olaylar, duruma göre.",
+    "lookAtFirst": "Önce bunlara bakın",
+    "lookAtFirstDetail": "Aktif olaylar, en kötü önem ve sonra en eski önce."
+  },
   "products": {
     "noneNamed": "Belirtilmedi"
   },
@@ -123,6 +137,7 @@
     "signOut": "Çıkış yap"
   },
   "product": {
+    "overview": "Genel bakış",
     "incidents": "Olaylar",
     "setup": "Kurulum",
     "members": "Üyeler",

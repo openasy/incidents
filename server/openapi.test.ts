@@ -177,6 +177,7 @@ describe("responses match openapi.json", () => {
     await call("PUT", "/api/v1/incidents/{id}/postmortem", admin({ body: "x" }), `${inc("INC-99")}/postmortem`);
     await call("PUT", "/api/v1/incidents/{id}/postmortem", { method: "PUT" }, `${inc(key)}/postmortem`);
     await call("GET", "/api/v1/summary", admin());
+    await call("GET", "/api/v1/overview", admin());
     await call("GET", "/api/v1/summary", {});
     await call("DELETE", "/api/v1/incidents/{id}", admin(), inc(key));
     await call("DELETE", "/api/v1/incidents/{id}", admin(), inc(key));

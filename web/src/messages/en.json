@@ -1,4 +1,18 @@
 {
+  "overviewPage": {
+    "overview": "Overview",
+    "active": "Active",
+    "activeCaption": "active",
+    "bySeverity": "Active by severity",
+    "bySeverityDetail": "Incidents not resolved yet.",
+    "timeToResolve": "Time to resolve",
+    "timeToResolveDetail": "The mean time from opening to resolving, for the incidents resolved each week.",
+    "meanTime": "Mean time",
+    "byStatus": "Where they stand",
+    "byStatusDetail": "Incidents not resolved yet, by status.",
+    "lookAtFirst": "Look at these first",
+    "lookAtFirstDetail": "Active incidents, worst severity and then oldest first."
+  },
   "products": {
     "noneNamed": "None named"
   },
@@ -123,6 +137,7 @@
     "signOut": "Sign out"
   },
   "product": {
+    "overview": "Overview",
     "incidents": "Incidents",
     "setup": "Setup",
     "members": "Members",

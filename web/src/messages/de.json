@@ -1,4 +1,18 @@
 {
+  "overviewPage": {
+    "overview": "Übersicht",
+    "active": "Aktiv",
+    "activeCaption": "aktiv",
+    "bySeverity": "Aktiv nach Schweregrad",
+    "bySeverityDetail": "Noch nicht gelöste Vorfälle.",
+    "timeToResolve": "Zeit bis zur Lösung",
+    "timeToResolveDetail": "Die mittlere Zeit vom Öffnen bis zur Lösung für die jede Woche gelösten Vorfälle.",
+    "meanTime": "Mittlere Zeit",
+    "byStatus": "Wo sie stehen",
+    "byStatusDetail": "Noch nicht gelöste Vorfälle nach Status.",
+    "lookAtFirst": "Diese zuerst ansehen",
+    "lookAtFirstDetail": "Aktive Vorfälle, schlimmster Schweregrad und dann älteste zuerst."
+  },
   "products": {
     "noneNamed": "Keine angegeben"
   },
@@ -123,6 +137,7 @@
     "signOut": "Abmelden"
   },
   "product": {
+    "overview": "Übersicht",
     "incidents": "Vorfälle",
     "setup": "Einrichtung",
     "members": "Mitglieder",

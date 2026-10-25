@@ -935,6 +935,49 @@
         "x-openasy-role": "viewer"
       }
     },
+    "/api/v1/overview": {
+      "get": {
+        "operationId": "getOverview",
+        "tags": [
+          "Product"
+        ],
+        "summary": "What the overview draws",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "apiToken": []
+          },
+          {
+            "adminToken": []
+          }
+        ],
+        "description": "Incidents not resolved by status, the eight to look at first (worst severity, then oldest), open tasks on them, and the mean minutes to resolve the incidents resolved in each of the last 12 weeks.\n\nNeeds the viewer role.",
+        "responses": {
+          "200": {
+            "description": "What the overview draws.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "x-openasy-role": "viewer"
+      }
+    },
     "/api/v1/version": {
       "get": {
         "operationId": "getVersion",
@@ -1943,6 +1986,114 @@
                 "$ref": "#/components/schemas/Postmortem"
               }
             ]
+          }
+        }
+      },
+      "Overview": {
+        "type": "object",
+        "required": [
+          "byStatus",
+          "active",
+          "openTasks",
+          "timeToResolve"
+        ],
+        "properties": {
+          "byStatus": {
+            "type": "object",
+            "required": [
+              "open",
+              "investigating",
+              "mitigated"
+            ],
+            "properties": {
+              "open": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "investigating": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mitigated": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "active": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "number",
+                "title",
+                "severity",
+                "status",
+                "commander",
+                "createdAt",
+                "openTasks"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "title": {
+                  "type": "string"
+                },
+                "severity": {
+                  "$ref": "#/components/schemas/Severity"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/Status"
+                },
+                "commander": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "openTasks": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "openTasks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "timeToResolve": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "start",
+                "minutes"
+              ],
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "minutes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "description": "Oldest first; null for a week nothing was resolved in."
           }
         }
       }

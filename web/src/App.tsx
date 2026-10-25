@@ -24,18 +24,33 @@ import {
   TextField,
   TimeSeriesChart,
   usePath,
-  type Column,
-  type ProductId,
   useThemePreference,
   useAgo,
   toLocale,
   useLocalePreference,
+  DonutChart,
+  OverviewGrid,
+  SEVERITY_META,
+  TONE_COLORS,
+  type Column,
+  type ProductId,
 } from "@openasy/ui";
 import { AccountSettings, AuthGate, MembersSettings, SignInSettings, TokensSettings, useAccountMenu, useAuth, useInstallBrand } from "@openasy/auth/react";
 import colophon from "virtual:openasy-colophon";
-import { KeyRound, LogIn, LogOut, Plus, Siren, Trash2, UserRound, Users } from "lucide-react";
+import { FileText, KeyRound, LayoutDashboard, ListTodo, LogIn, LogOut, Plus, ShieldAlert, Siren, Timer, Trash2, UserRound, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { api, MfaSetupRequired, Unauthorized, type Incident, type IncidentSummary, type ProductLink, type Severity, type Status, type Summary } from "./api.ts";
+import {
+  api,
+  MfaSetupRequired,
+  Unauthorized,
+  type Incident,
+  type IncidentSummary,
+  type Overview,
+  type ProductLink,
+  type Severity,
+  type Status,
+  type Summary,
+} from "./api.ts";
 import { useT, type T } from "./i18n.ts";
 import { search } from "./search.ts";
 
@@ -48,14 +63,15 @@ function duration(t: T, minutes: number | null): string {
 }
 
 const PAGES = ["setup", "account", "members", "signin", "tokens", "about"] as const;
-type Route = { page: "incidents" | (typeof PAGES)[number] } | { page: "incident"; id: string };
+type Route = { page: "overview" | "incidents" | (typeof PAGES)[number] } | { page: "incident"; id: string };
 /** The first path segments that are pages of this UI, for followLinks. */
-export const PATHS = ["incidents", ...PAGES];
+export const PATHS = ["overview", "incidents", ...PAGES];
 function parseRoute(path: string): Route {
   const [page, id] = path.replace(/^\//, "").split("/");
   if (page === "incidents" && id) return { page: "incident", id: decodeURIComponent(id) };
   if ((PAGES as readonly string[]).includes(page ?? "")) return { page: page as (typeof PAGES)[number] };
-  return { page: "incidents" };
+  if (page === "incidents") return { page: "incidents" };
+  return { page: "overview" };
 }
 
 /** Data loading with the session; when it ends, the sign-in screen comes back. */
@@ -169,6 +185,140 @@ function NewIncidentDialog({ open, onClose, call, onCreated }: { open: boolean; 
   );
 }
 
+function OverviewPage({ call, summary }: { call: Call; summary?: Summary }) {
+  const ago = useAgo();
+  const t = useT();
+  const [o, setO] = useState<Overview>();
+  useEffect(() => void call<Overview>("/api/v1/overview").then(setO, () => {}), [call, summary]);
+  const s = summary;
+  const week = (d: string) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  const color = (sev: Severity) => TONE_COLORS[SEVERITY_META[sev].tone];
+  const active = s ? Object.values(s.open).reduce((a, b) => a + b, 0) : 0;
+  // A week nothing was resolved in keeps the week before, rather than reading as no time at all.
+  let last = 0;
+  const resolveTimes = o ? o.timeToResolve.map((w) => (last = w.minutes ?? last)) : [];
+  const columns: Column<Overview["active"][number]>[] = [
+    {
+      id: "incident",
+      header: t("incidentsPage.incident"),
+      cell: (i) => (
+        <span className="flex min-w-0 flex-col">
+          <a href={`/incidents/INC-${i.number}`} className="font-medium">
+            INC-{i.number} · {i.title}
+          </a>
+          {i.commander && <span className="text-xs text-fg-muted">{i.commander}</span>}
+        </span>
+      ),
+    },
+    { id: "severity", header: t("incidentsPage.severity"), width: "110px", cell: (i) => <SeverityBadge severity={i.severity} /> },
+    { id: "status", header: t("incidentsPage.status"), width: "130px", cell: (i) => <StatusPill status={i.status} /> },
+    { id: "tasks", header: t("incidentsPage.openTasks"), width: "100px", align: "right", cell: (i) => i.openTasks },
+    { id: "opened", header: t("incidentsPage.opened"), width: "120px", cell: (i) => <span className="text-xs">{ago(i.createdAt)}</span> },
+  ];
+  return (
+    <>
+      <PageHeader title={t("overviewPage.overview")} description={s ? t("incidentsPage.openKept", { openTotal: active, total: s.total }) : undefined} />
+      {s && (
+        <KpiGrid minWidth={150}>
+          <KpiCard
+            label={t("overviewPage.active")}
+            value={active}
+            icon={Siren}
+            tone={active ? "danger" : "success"}
+            trend={s.weeks.map((w) => w.opened)}
+            trendColor={TONE_COLORS.danger}
+            href="/incidents"
+          />
+          <KpiCard
+            label={t("incidentsPage.critical")}
+            value={s.open.critical}
+            icon={ShieldAlert}
+            tone={s.open.critical ? "critical" : "success"}
+            href="/incidents"
+          />
+          <KpiCard
+            label={t("incidentsPage.meanTimeToResolve90")}
+            value={duration(t, s.meanMinutesToResolve)}
+            icon={Timer}
+            tone="info"
+            trend={resolveTimes.length > 1 ? resolveTimes : undefined}
+          />
+          <KpiCard label={t("incidentsPage.openTasks")} value={o?.openTasks ?? "–"} icon={ListTodo} tone={o?.openTasks ? "warning" : undefined} />
+          <KpiCard
+            label={t("incidentsPage.waitingForAPostmortem")}
+            value={s.awaitingPostmortem}
+            icon={FileText}
+            tone={s.awaitingPostmortem ? "warning" : "success"}
+          />
+        </KpiGrid>
+      )}
+      {s && (
+        <OverviewGrid>
+          <Panel title={t("incidentsPage.openedAndResolved")} description={t("incidentsPage.eachWeekOfTheLast")}>
+            <TimeSeriesChart
+              label={t("incidentsPage.incidentsOpenedAndResolvedEach")}
+              series={[
+                { id: "opened", name: t("incidentsPage.opened"), data: s.weeks.map((w) => w.opened), color: TONE_COLORS.danger },
+                { id: "resolved", name: t("incidentsPage.resolved"), data: s.weeks.map((w) => w.resolved), color: TONE_COLORS.success },
+              ]}
+              labels={s.weeks.map((w) => week(`${w.start}T00:00:00Z`))}
+              height={190}
+              xTicks={6}
+            />
+          </Panel>
+          <Panel title={t("overviewPage.bySeverity")} description={t("overviewPage.bySeverityDetail")}>
+            <DonutChart
+              label={t("overviewPage.bySeverity")}
+              caption={t("overviewPage.activeCaption")}
+              slices={(["critical", "high", "medium", "low"] as const).map((k) => ({
+                id: k,
+                name: t(`incidentsPage.${k}`),
+                value: s.open[k],
+                color: color(k),
+                href: "/incidents",
+              }))}
+            />
+          </Panel>
+        </OverviewGrid>
+      )}
+      {o && (
+        <OverviewGrid>
+          <Panel title={t("overviewPage.timeToResolve")} description={t("overviewPage.timeToResolveDetail")}>
+            <TimeSeriesChart
+              label={t("overviewPage.timeToResolve")}
+              series={[{ id: "minutes", name: t("overviewPage.meanTime"), data: resolveTimes, color: TONE_COLORS.info }]}
+              labels={o.timeToResolve.map((w) => week(w.start))}
+              format={(v) => duration(t, Math.round(v))}
+              height={190}
+              xTicks={6}
+            />
+          </Panel>
+          <Panel title={t("overviewPage.byStatus")} description={t("overviewPage.byStatusDetail")}>
+            <DonutChart
+              label={t("overviewPage.byStatus")}
+              caption={t("overviewPage.activeCaption")}
+              slices={[
+                { id: "open", name: t("statuses.open"), value: o.byStatus.open, color: TONE_COLORS.danger },
+                { id: "investigating", name: t("statuses.investigating"), value: o.byStatus.investigating, color: TONE_COLORS.warning },
+                { id: "mitigated", name: t("statuses.mitigated"), value: o.byStatus.mitigated, color: TONE_COLORS.info },
+              ]}
+            />
+          </Panel>
+        </OverviewGrid>
+      )}
+      {o && (
+        <Panel title={t("overviewPage.lookAtFirst")} description={t("overviewPage.lookAtFirstDetail")} flush>
+          {o.active.length ? (
+            <DataTable label={t("overviewPage.lookAtFirst")} rows={o.active} columns={columns} getRowId={(i) => i.id} />
+          ) : (
+            <EmptyState title={t("incidentsPage.noActiveIncidents")} />
+          )}
+        </Panel>
+      )}
+    </>
+  );
+}
+
 function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summary; reload: () => void }) {
   const ago = useAgo();
   const t = useT();
@@ -252,36 +402,6 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
           </>
         }
       />
-      {s && (
-        <KpiGrid minWidth={150}>
-          <KpiCard
-            label={t("incidentsPage.critical")}
-            value={s.open.critical}
-            tone={s.open.critical ? "danger" : "success"}
-            footer={<SeverityBadge severity="critical" />}
-          />
-          <KpiCard label={t("incidentsPage.high")} value={s.open.high} footer={<SeverityBadge severity="high" />} />
-          <KpiCard label={t("incidentsPage.medium")} value={s.open.medium} footer={<SeverityBadge severity="medium" />} />
-          <KpiCard label={t("incidentsPage.low")} value={s.open.low} footer={<SeverityBadge severity="low" />} />
-          <KpiCard label={t("incidentsPage.meanTimeToResolve90")} value={duration(t, s.meanMinutesToResolve)} tone="info" />
-          <KpiCard label={t("incidentsPage.waitingForAPostmortem")} value={s.awaitingPostmortem} tone={s.awaitingPostmortem ? "warning" : "success"} />
-        </KpiGrid>
-      )}
-      {s && (
-        <Panel title={t("incidentsPage.openedAndResolved")} description={t("incidentsPage.eachWeekOfTheLast")}>
-          <TimeSeriesChart
-            label={t("incidentsPage.incidentsOpenedAndResolvedEach")}
-            series={[
-              { id: "opened", name: t("incidentsPage.opened"), data: s.weeks.map((w) => w.opened) },
-              { id: "resolved", name: t("incidentsPage.resolved"), data: s.weeks.map((w) => w.resolved) },
-            ]}
-            labels={s.weeks.map((w) => new Date(`${w.start}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
-            area={false}
-            height={160}
-            xTicks={6}
-          />
-        </Panel>
-      )}
       <Tabs<View>
         label={t("incidentsPage.incidentViews")}
         value={view}
@@ -824,6 +944,7 @@ function Product() {
   }, [reload]);
 
   const nav = [
+    { id: "overview", label: msg("product.overview"), icon: LayoutDashboard },
     { id: "incidents", label: msg("product.incidents"), icon: Siren, count: summary ? Object.values(summary.open).reduce((a, b) => a + b, 0) : undefined },
   ];
   const footerNav = [
@@ -859,7 +980,9 @@ function Product() {
       onThemeChange={setTheme}
       onLanguageChange={(code) => setLocale(toLocale(code))}
     >
-      {route.page === "incidents" ? (
+      {route.page === "overview" ? (
+        <OverviewPage call={call} summary={summary} />
+      ) : route.page === "incidents" ? (
         <IncidentsPage call={call} summary={summary} reload={reload} />
       ) : route.page === "incident" ? (
         <IncidentPage key={route.id} call={call} id={route.id} reload={reload} />
