@@ -1267,7 +1267,8 @@
           "total",
           "resolved90d",
           "meanMinutesToResolve",
-          "awaitingPostmortem"
+          "awaitingPostmortem",
+          "weeks"
         ],
         "additionalProperties": false,
         "properties": {
@@ -1295,6 +1296,32 @@
           "awaitingPostmortem": {
             "type": "integer",
             "description": "Resolved incidents without a published postmortem."
+          },
+          "weeks": {
+            "type": "array",
+            "description": "Incidents opened and resolved in each of the last 12 weeks, Monday to Sunday in UTC, oldest first.",
+            "items": {
+              "type": "object",
+              "required": [
+                "start",
+                "opened",
+                "resolved"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "The Monday the week starts on."
+                },
+                "opened": {
+                  "type": "integer"
+                },
+                "resolved": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         }
       },

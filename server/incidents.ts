@@ -403,6 +403,7 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
         resolved90d: mttr.n,
         meanMinutesToResolve: mttr.m === null ? null : Math.round(mttr.m),
         awaitingPostmortem: awaiting,
+        weeks: weekly(db),
       };
     },
 
@@ -414,3 +415,27 @@ export function createIncidents(db: DatabaseSync, { retentionDays = 1095 }: Inci
 }
 
 export type Incidents = ReturnType<typeof createIncidents>;
+
+const WEEK = 7 * 86_400_000;
+
+/** The dates of the Mondays (UTC) that start the last n weeks, this week last. */
+export function weekStarts(n: number, now = new Date()): string[] {
+  const monday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - ((now.getUTCDay() + 6) % 7) * 86_400_000;
+  return Array.from({ length: n }, (_, i) => new Date(monday - (n - 1 - i) * WEEK).toISOString().slice(0, 10));
+}
+
+/** Incidents opened and resolved in each of the last 12 weeks, oldest first. */
+function weekly(db: DatabaseSync) {
+  const weeks = weekStarts(12).map((start) => ({ start, opened: 0, resolved: 0 }));
+  const from = Date.parse(weeks[0]!.start);
+  const week = (at: string) => weeks[Math.floor((Date.parse(at) - from) / WEEK)];
+  for (const r of db.prepare("SELECT created_at AS at FROM incidents WHERE created_at >= ?").all(weeks[0]!.start) as Array<{ at: string }>) {
+    const w = week(r.at);
+    if (w) w.opened++;
+  }
+  for (const r of db.prepare("SELECT resolved_at AS at FROM incidents WHERE resolved_at >= ?").all(weeks[0]!.start) as Array<{ at: string }>) {
+    const w = week(r.at);
+    if (w) w.resolved++;
+  }
+  return weeks;
+}

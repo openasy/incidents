@@ -1,0 +1,152 @@
+{
+  "products": {
+    "noneNamed": "Belirtilmedi"
+  },
+  "newIncidentDialog": {
+    "openAnIncident": "Olay açın",
+    "sayWhatIsWrongHow": "Sorunun ne olduğunu, ne kadar ciddi olduğunu ve kimin yöneteceğini yazın. Bundan sonraki her şey zaman çizelgesine gider.",
+    "cancel": "Vazgeç",
+    "openIncident": "Olay aç",
+    "title": "Başlık",
+    "severity": "Önem",
+    "commander": "Olay yöneticisi",
+    "productsInvolved": "İlgili ürünler",
+    "productIdsSeparatedByCommas": "Virgülle ayrılmış ürün kimlikleri, örneğin siem, vpn.",
+    "summary": "Özet"
+  },
+  "incidentsPage": {
+    "severity": "Önem",
+    "incident": "Olay",
+    "status": "Durum",
+    "commander": "Olay yöneticisi",
+    "products": "Ürünler",
+    "openTasks": "Açık görevler",
+    "opened": "Açıldı",
+    "incidents": "Olaylar",
+    "openKept": "{{openTotal}} açık · {{total}} kayıtlı",
+    "searchIncidents": "Olaylarda ara",
+    "openIncident": "Olay aç",
+    "critical": "Kritik",
+    "high": "Yüksek",
+    "medium": "Orta",
+    "low": "Düşük",
+    "meanTimeToResolve90": "Ortalama çözüm süresi, 90 gün",
+    "waitingForAPostmortem": "Olay sonrası inceleme bekleyen",
+    "openedAndResolved": "Açılan ve çözülen",
+    "eachWeekOfTheLast": "Son 12 haftanın her biri, pazartesiden pazara.",
+    "incidentsOpenedAndResolvedEach": "Her hafta açılan ve çözülen olaylar",
+    "incidentViews": "Olay görünümleri",
+    "active": "Etkin",
+    "resolved": "Çözüldü",
+    "all": "Tümü",
+    "loadMore": "Daha fazla yükle",
+    "noActiveIncidents": "Etkin olay yok",
+    "noIncidents": "Olay yok",
+    "nothingHasBeenOpenedYet": "Henüz bir şey açılmadı. Olayları kişiler burada açar, diğer ürünler de bir API token'ıyla açabilir: bkz.",
+    "setup": "Kurulum",
+    "nothingMatchesTheseFilters": "Bu filtrelerle eşleşen bir şey yok."
+  },
+  "timelinePanel": {
+    "timeline": "Zaman çizelgesi",
+    "whatHappenedInOrderNothing": "Olanlar, sırasıyla. Buradaki hiçbir şey düzenlenemez ya da silinemez.",
+    "addANote": "Not ekleyin",
+    "add": "Ekle"
+  },
+  "tasksPanel": {
+    "tasks": "Görevler",
+    "whatHasToBeDone": "Neyin, kim tarafından yapılması gerektiği. Biri tamamlanınca zaman çizelgesine yazılır.",
+    "noTasksYet": "Henüz görev yok.",
+    "deleteTheTask": "{{title}} görevini sil",
+    "newTask": "Yeni görev",
+    "owner": "Sorumlu",
+    "add": "Ekle"
+  },
+  "evidencePanel": {
+    "evidence": "Kanıtlar",
+    "linksToWhereTheEvidence": "Kanıtın bulunduğu yere bağlantılar, örneğin Logs'ta kayıtlı bir arama. Dosyalar burada tutulmaz.",
+    "noEvidenceLinkedYet": "Henüz bağlanmış kanıt yok.",
+    "removeTheLink": "{{title}} bağlantısını kaldır",
+    "title": "Başlık",
+    "address": "Adres",
+    "product": "Ürün",
+    "suchAsLogs": "Örneğin logs.",
+    "add": "Ekle"
+  },
+  "postmortemPanel": {
+    "postmortem": "Olay sonrası inceleme",
+    "notYet": "Henüz değil",
+    "aPostmortemIsWrittenOnce": "Olay sonrası inceleme, olay çözüldükten sonra yazılır; böylece nasıl bittiğini anlatabilir.",
+    "whatHappenedWhyAndWhat": "Ne oldu, neden oldu ve ne değişiyor. Markdown.",
+    "published": "Yayımlandı",
+    "draft": "Taslak",
+    "notWritten": "Yazılmadı",
+    "saveDraft": "Taslağı kaydet",
+    "publish": "Yayımla",
+    "nothingHasBeenWrittenYet": "Henüz bir şey yazılmadı."
+  },
+  "incidentPage": {
+    "incidentNotFound": "Olay bulunamadı",
+    "itMayHaveBeenDeleted": "Silinmiş olabilir.",
+    "backToIncidents": "Olaylara dön",
+    "incident": "Olay",
+    "opened": "{{ago}} açıldı{{value}}{{value2}}",
+    "status": "Durum",
+    "severity": "Önem",
+    "commander": "Olay yöneticisi",
+    "products": "Ürünler",
+    "deleteIncident": "Olayı sil",
+    "delete": "{{key}} silinsin mi?",
+    "itsTimelineTasksEvidenceLinks": "Zaman çizelgesi, görevleri, kanıt bağlantıları ve olay sonrası incelemesi silinir. Yalnızca kapatmak istiyorsanız bunun yerine çözüldü olarak işaretleyin.",
+    "cancel": "Vazgeç",
+    "delete2": "Sil",
+    "incidentSections": "Olay bölümleri",
+    "timeline": "Zaman çizelgesi",
+    "tasks": "Görevler ({{openTasks}})",
+    "evidence": "Kanıtlar",
+    "postmortem": "Olay sonrası inceleme"
+  },
+  "setupPage": {
+    "setup": "Kurulum",
+    "peopleOpenIncidentsHereOther": "Olayları kişiler burada açar. Diğer ürünler de bir API token'ıyla açabilir.",
+    "letAProductOpenIncidents": "Bir ürünün olay açmasına izin verin",
+    "createAnApiTokenWith": "API token'ları altında düzenleyici rolüne sahip bir API token'ı oluşturun. Aynı kaynak ve referans, ne kadar sık bildirilirse bildirilsin tek bir olaydır.",
+    "howAnIncidentRuns": "Bir olay nasıl yürür",
+    "openItWorkItResolve": "Açın, üzerinde çalışın, çözün, sonra ondan ders çıkarın.",
+    "aChangeOfStatusOr": "Durum ya da önem değişikliği, kimin yaptığıyla birlikte kendiliğinden zaman çizelgesine yazılır.",
+    "theTimelineIsAppendOnly": "Zaman çizelgesine yalnızca ekleme yapılır: notlar ve bağlantılar eklenir, hiçbir şey düzenlenmez ya da silinmez.",
+    "evidenceIsALinkTo": "Kanıt, bulunduğu yere bir bağlantıdır. Dosyalar burada tutulmaz.",
+    "aPostmortemIsWrittenOnce": "Olay sonrası inceleme, olay çözüldükten sonra yazılır. Yayımlanmış incelemesi olmayan olaylar genel bakışta sayılır."
+  },
+  "settingsPage": {
+    "adminsOnly": "Yalnızca yöneticiler",
+    "askAnAdminOfThis": "Erişim için bu Incidents'ın bir yöneticisine başvurun.",
+    "signOut": "Çıkış yap"
+  },
+  "product": {
+    "incidents": "Olaylar",
+    "setup": "Kurulum",
+    "members": "Üyeler",
+    "signIn": "Oturum açma",
+    "apiTokens": "API token'ları",
+    "account": "Hesap"
+  },
+  "statuses": {
+    "open": "Açık",
+    "investigating": "İnceleniyor",
+    "mitigated": "Etkisi azaltıldı",
+    "resolved": "Çözüldü"
+  },
+  "kindLabel": {
+    "taskDone": "Görev tamamlandı"
+  },
+  "search": {
+    "incident": "Olay",
+    "incidentDetail": "{{status}} · {{commander}}",
+    "noCommander": "Olay yöneticisi yok"
+  },
+  "units": {
+    "minutes": "{{n}} dk",
+    "days": "{{n}} g",
+    "hoursMinutes": "{{h}} sa {{m}} dk"
+  }
+}

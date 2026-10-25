@@ -22,25 +22,29 @@ import {
   StatusBadge,
   Tabs,
   TextField,
+  TimeSeriesChart,
   usePath,
   type Column,
   type ProductId,
   useThemePreference,
   useAgo,
+  toLocale,
+  useLocalePreference,
 } from "@openasy/ui";
-import { AccountSettings, AuthGate, MembersSettings, SignInSettings, TokensSettings, useAuth, useInstallBrand } from "@openasy/auth/react";
+import { AccountSettings, AuthGate, MembersSettings, SignInSettings, TokensSettings, useAccountMenu, useAuth, useInstallBrand } from "@openasy/auth/react";
 import colophon from "virtual:openasy-colophon";
-import { KeyRound, LogIn, LogOut, Plus, Settings2, Siren, Trash2, UserRound, Users } from "lucide-react";
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { KeyRound, LogIn, LogOut, Plus, Siren, Trash2, UserRound, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { api, MfaSetupRequired, Unauthorized, type Incident, type IncidentSummary, type ProductLink, type Severity, type Status, type Summary } from "./api.ts";
 import { useT, type T } from "./i18n.ts";
+import { search } from "./search.ts";
 
 /** 95 minutes is "1 h 35 min"; the clock of an incident is read in hours more than in seconds. */
-function duration(minutes: number | null): string {
+function duration(t: T, minutes: number | null): string {
   if (minutes === null) return "–";
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return t("units.minutes", { n: minutes });
   const h = Math.floor(minutes / 60);
-  return h >= 48 ? `${Math.round(h / 24)} d` : `${h} h ${minutes % 60} min`;
+  return h >= 48 ? t("units.days", { n: Math.round(h / 24) }) : t("units.hoursMinutes", { h, m: minutes % 60 });
 }
 
 const PAGES = ["setup", "account", "members", "signin", "tokens", "about"] as const;
@@ -259,9 +263,24 @@ function IncidentsPage({ call, summary, reload }: { call: Call; summary?: Summar
           <KpiCard label={t("incidentsPage.high")} value={s.open.high} footer={<SeverityBadge severity="high" />} />
           <KpiCard label={t("incidentsPage.medium")} value={s.open.medium} footer={<SeverityBadge severity="medium" />} />
           <KpiCard label={t("incidentsPage.low")} value={s.open.low} footer={<SeverityBadge severity="low" />} />
-          <KpiCard label={t("incidentsPage.meanTimeToResolve90")} value={duration(s.meanMinutesToResolve)} tone="info" />
+          <KpiCard label={t("incidentsPage.meanTimeToResolve90")} value={duration(t, s.meanMinutesToResolve)} tone="info" />
           <KpiCard label={t("incidentsPage.waitingForAPostmortem")} value={s.awaitingPostmortem} tone={s.awaitingPostmortem ? "warning" : "success"} />
         </KpiGrid>
+      )}
+      {s && (
+        <Panel title={t("incidentsPage.openedAndResolved")} description={t("incidentsPage.eachWeekOfTheLast")}>
+          <TimeSeriesChart
+            label={t("incidentsPage.incidentsOpenedAndResolvedEach")}
+            series={[
+              { id: "opened", name: t("incidentsPage.opened"), data: s.weeks.map((w) => w.opened) },
+              { id: "resolved", name: t("incidentsPage.resolved"), data: s.weeks.map((w) => w.resolved) },
+            ]}
+            labels={s.weeks.map((w) => new Date(`${w.start}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
+            area={false}
+            height={160}
+            xTicks={6}
+          />
+        </Panel>
       )}
       <Tabs<View>
         label={t("incidentsPage.incidentViews")}
@@ -779,11 +798,14 @@ function SettingsPage({ page }: { page: "account" | "members" | "signin" | "toke
 function Product() {
   const msg = useT();
   const [theme, setTheme] = useThemePreference();
+  const [, setLocale] = useLocalePreference();
   const { me, can } = useAuth();
+  const account = useAccountMenu();
   const route = parseRoute(usePath());
   const [summary, setSummary] = useState<Summary>();
   const [products, setProducts] = useState<Array<ProductLink & { id: ProductId }>>([]);
   const call = useApi();
+  const onSearch = useMemo(() => search(call, msg), [call, msg]);
 
   // The install's other products (OPENASY_PRODUCTS), for the switcher; ids this UI does not know are left out.
   useEffect(() => {
@@ -805,7 +827,6 @@ function Product() {
     { id: "incidents", label: msg("product.incidents"), icon: Siren, count: summary ? Object.values(summary.open).reduce((a, b) => a + b, 0) : undefined },
   ];
   const footerNav = [
-    { id: "setup", label: msg("product.setup"), icon: Settings2 },
     ...(can("admin")
       ? [
           { id: "members", label: msg("product.members"), icon: Users },
@@ -821,6 +842,7 @@ function Product() {
   return (
     <AppShell
       product="incidents"
+      onSearch={onSearch}
       about={colophon}
       nav={nav}
       activeNav={active}
@@ -830,10 +852,12 @@ function Product() {
         const to = products.find((p) => p.id === id);
         if (to) window.location.assign(to.url);
       }}
-      footerNav={footerNav}
-      user={{ name: me.user.name, role: roleName }}
+      footerNav={account.settings(footerNav)}
+      setup
+      user={{ name: me.user.name, role: roleName, ...account.user }}
       theme={theme}
       onThemeChange={setTheme}
+      onLanguageChange={(code) => setLocale(toLocale(code))}
     >
       {route.page === "incidents" ? (
         <IncidentsPage call={call} summary={summary} reload={reload} />
@@ -851,9 +875,10 @@ function Product() {
 export function App() {
   const installBrand = useInstallBrand();
   const [theme] = useThemePreference();
+  const [locale] = useLocalePreference();
   return (
     // The install's brand from config/brand.env (ADR 0053); OpenAsy's own look where it sets none.
-    <BrandProvider theme={theme} brand={{ name: "OpenAsy", organization: undefined, ...installBrand }} className="min-h-screen">
+    <BrandProvider theme={theme} locale={locale} brand={{ name: "OpenAsy", organization: undefined, ...installBrand }} className="min-h-screen">
       <AuthGate product="OpenAsy Incidents">
         <Product />
       </AuthGate>

@@ -32,6 +32,9 @@
     "low": "Low",
     "meanTimeToResolve90": "Mean time to resolve, 90 days",
     "waitingForAPostmortem": "Waiting for a postmortem",
+    "openedAndResolved": "Opened and resolved",
+    "eachWeekOfTheLast": "Each week of the last 12, Monday to Sunday.",
+    "incidentsOpenedAndResolvedEach": "Incidents opened and resolved each week",
     "incidentViews": "Incident views",
     "active": "Active",
     "resolved": "Resolved",
@@ -135,5 +138,15 @@
   },
   "kindLabel": {
     "taskDone": "Task done"
+  },
+  "search": {
+    "incident": "Incident",
+    "incidentDetail": "{{status}} · {{commander}}",
+    "noCommander": "No commander"
+  },
+  "units": {
+    "minutes": "{{n}} min",
+    "days": "{{n}} d",
+    "hoursMinutes": "{{h}} h {{m}} min"
   }
 }

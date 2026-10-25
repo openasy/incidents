@@ -1,0 +1,152 @@
+{
+  "products": {
+    "noneNamed": "Keine angegeben"
+  },
+  "newIncidentDialog": {
+    "openAnIncident": "Vorfall eröffnen",
+    "sayWhatIsWrongHow": "Beschreiben Sie, was nicht stimmt, wie schwer es ist und wer die Leitung hat. Alles Weitere kommt in die Zeitleiste.",
+    "cancel": "Abbrechen",
+    "openIncident": "Vorfall eröffnen",
+    "title": "Titel",
+    "severity": "Schweregrad",
+    "commander": "Leitung",
+    "productsInvolved": "Beteiligte Produkte",
+    "productIdsSeparatedByCommas": "Produkt-IDs durch Kommas getrennt, etwa siem, vpn.",
+    "summary": "Zusammenfassung"
+  },
+  "incidentsPage": {
+    "severity": "Schweregrad",
+    "incident": "Vorfall",
+    "status": "Status",
+    "commander": "Leitung",
+    "products": "Produkte",
+    "openTasks": "Offene Aufgaben",
+    "opened": "Eröffnet",
+    "incidents": "Vorfälle",
+    "openKept": "{{openTotal}} offen · {{total}} gespeichert",
+    "searchIncidents": "Vorfälle durchsuchen",
+    "openIncident": "Vorfall eröffnen",
+    "critical": "Kritisch",
+    "high": "Hoch",
+    "medium": "Mittel",
+    "low": "Niedrig",
+    "meanTimeToResolve90": "Mittlere Zeit bis zur Lösung, 90 Tage",
+    "waitingForAPostmortem": "Warten auf eine Nachbetrachtung",
+    "openedAndResolved": "Eröffnet und gelöst",
+    "eachWeekOfTheLast": "Jede der letzten 12 Wochen, Montag bis Sonntag.",
+    "incidentsOpenedAndResolvedEach": "Pro Woche eröffnete und gelöste Vorfälle",
+    "incidentViews": "Vorfallansichten",
+    "active": "Aktiv",
+    "resolved": "Gelöst",
+    "all": "Alle",
+    "loadMore": "Mehr laden",
+    "noActiveIncidents": "Keine aktiven Vorfälle",
+    "noIncidents": "Keine Vorfälle",
+    "nothingHasBeenOpenedYet": "Es wurde noch nichts eröffnet. Personen eröffnen Vorfälle hier, andere Produkte können es mit einem API-Token: siehe",
+    "setup": "Einrichtung",
+    "nothingMatchesTheseFilters": "Nichts passt zu diesen Filtern."
+  },
+  "timelinePanel": {
+    "timeline": "Zeitleiste",
+    "whatHappenedInOrderNothing": "Was geschah, in der Reihenfolge. Nichts hier kann bearbeitet oder gelöscht werden.",
+    "addANote": "Notiz hinzufügen",
+    "add": "Hinzufügen"
+  },
+  "tasksPanel": {
+    "tasks": "Aufgaben",
+    "whatHasToBeDone": "Was zu tun ist und von wem. Eine erledigte Aufgabe wird in die Zeitleiste geschrieben.",
+    "noTasksYet": "Noch keine Aufgaben.",
+    "deleteTheTask": "Aufgabe {{title}} löschen",
+    "newTask": "Neue Aufgabe",
+    "owner": "Verantwortlich",
+    "add": "Hinzufügen"
+  },
+  "evidencePanel": {
+    "evidence": "Belege",
+    "linksToWhereTheEvidence": "Links dorthin, wo die Belege liegen, etwa eine gespeicherte Suche in Logs. Dateien werden hier nicht aufbewahrt.",
+    "noEvidenceLinkedYet": "Noch keine Belege verknüpft.",
+    "removeTheLink": "Link {{title}} entfernen",
+    "title": "Titel",
+    "address": "Adresse",
+    "product": "Produkt",
+    "suchAsLogs": "Etwa logs.",
+    "add": "Hinzufügen"
+  },
+  "postmortemPanel": {
+    "postmortem": "Nachbetrachtung",
+    "notYet": "Noch nicht",
+    "aPostmortemIsWrittenOnce": "Eine Nachbetrachtung wird geschrieben, sobald der Vorfall gelöst ist, damit sie sagen kann, wie er endete.",
+    "whatHappenedWhyAndWhat": "Was geschah, warum und was sich ändert. Markdown.",
+    "published": "Veröffentlicht",
+    "draft": "Entwurf",
+    "notWritten": "Nicht geschrieben",
+    "saveDraft": "Entwurf speichern",
+    "publish": "Veröffentlichen",
+    "nothingHasBeenWrittenYet": "Es wurde noch nichts geschrieben."
+  },
+  "incidentPage": {
+    "incidentNotFound": "Vorfall nicht gefunden",
+    "itMayHaveBeenDeleted": "Er wurde vielleicht gelöscht.",
+    "backToIncidents": "Zurück zu den Vorfällen",
+    "incident": "Vorfall",
+    "opened": "Eröffnet {{ago}}{{value}}{{value2}}",
+    "status": "Status",
+    "severity": "Schweregrad",
+    "commander": "Leitung",
+    "products": "Produkte",
+    "deleteIncident": "Vorfall löschen",
+    "delete": "{{key}} löschen?",
+    "itsTimelineTasksEvidenceLinks": "Seine Zeitleiste, Aufgaben, Beleglinks und Nachbetrachtung werden gelöscht. Markieren Sie ihn stattdessen als gelöst, wenn Sie ihn nur schließen wollen.",
+    "cancel": "Abbrechen",
+    "delete2": "Löschen",
+    "incidentSections": "Abschnitte des Vorfalls",
+    "timeline": "Zeitleiste",
+    "tasks": "Aufgaben ({{openTasks}})",
+    "evidence": "Belege",
+    "postmortem": "Nachbetrachtung"
+  },
+  "setupPage": {
+    "setup": "Einrichtung",
+    "peopleOpenIncidentsHereOther": "Personen eröffnen Vorfälle hier. Andere Produkte können es auch, mit einem API-Token.",
+    "letAProductOpenIncidents": "Ein Produkt Vorfälle eröffnen lassen",
+    "createAnApiTokenWith": "Erstellen Sie unter API-Tokens ein API-Token mit der Rolle Bearbeiter. Dieselbe Quelle und Referenz ergeben einen Vorfall, wie oft sie auch melden.",
+    "howAnIncidentRuns": "Wie ein Vorfall abläuft",
+    "openItWorkItResolve": "Eröffnen, bearbeiten, lösen, dann daraus lernen.",
+    "aChangeOfStatusOr": "Eine Änderung von Status oder Schweregrad wird von selbst in die Zeitleiste geschrieben, mit wem sie gemacht hat.",
+    "theTimelineIsAppendOnly": "Die Zeitleiste wird nur ergänzt: Notizen und Links kommen hinzu, nichts wird bearbeitet oder gelöscht.",
+    "evidenceIsALinkTo": "Ein Beleg ist ein Link dorthin, wo er liegt. Dateien werden hier nicht aufbewahrt.",
+    "aPostmortemIsWrittenOnce": "Eine Nachbetrachtung wird geschrieben, sobald der Vorfall gelöst ist. Vorfälle ohne veröffentlichte Nachbetrachtung werden in der Übersicht gezählt."
+  },
+  "settingsPage": {
+    "adminsOnly": "Nur für Admins",
+    "askAnAdminOfThis": "Bitten Sie einen Admin dieses Incidents um Zugriff.",
+    "signOut": "Abmelden"
+  },
+  "product": {
+    "incidents": "Vorfälle",
+    "setup": "Einrichtung",
+    "members": "Mitglieder",
+    "signIn": "Anmeldung",
+    "apiTokens": "API-Tokens",
+    "account": "Konto"
+  },
+  "statuses": {
+    "open": "Offen",
+    "investigating": "In Untersuchung",
+    "mitigated": "Eingedämmt",
+    "resolved": "Gelöst"
+  },
+  "kindLabel": {
+    "taskDone": "Aufgabe erledigt"
+  },
+  "search": {
+    "incident": "Vorfall",
+    "incidentDetail": "{{status}} · {{commander}}",
+    "noCommander": "Keine Leitung"
+  },
+  "units": {
+    "minutes": "{{n}} Min.",
+    "days": "{{n}} T.",
+    "hoursMinutes": "{{h}} Std. {{m}} Min."
+  }
+}

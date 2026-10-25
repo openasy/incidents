@@ -16,6 +16,8 @@ export interface Summary {
   resolved90d: number;
   meanMinutesToResolve: number | null;
   awaitingPostmortem: number;
+  /** The last 12 weeks, Monday to Sunday in UTC, oldest first. */
+  weeks: Array<{ start: string; opened: number; resolved: number }>;
 }
 
 export interface TimelineEntry {

@@ -206,6 +206,10 @@ describe("summary, deleting and access", () => {
     app.db.prepare("UPDATE incidents SET created_at = ? WHERE number = 1").run(new Date(Date.now() - 86_400_000 - 120 * 60_000).toISOString());
     const s = await json(await app.send("GET", "/api/v1/summary"));
     expect(s).toMatchObject({ total: 5, open: { critical: 0, high: 2, medium: 2, low: 0 }, resolved90d: 1, meanMinutesToResolve: 120, awaitingPostmortem: 0 });
+    // Every incident here was opened, and one resolved, within the last two days.
+    expect(s.weeks).toHaveLength(12);
+    expect(s.weeks.reduce((n: number, w: { opened: number }) => n + w.opened, 0)).toBe(5);
+    expect(s.weeks.reduce((n: number, w: { resolved: number }) => n + w.resolved, 0)).toBe(1);
     const metrics = await (await fetch(`${app.base}/metrics`)).text();
     expect(metrics).toContain('openasy_incidents_open{severity="high"} 2');
     expect(metrics).toContain("openasy_incidents_mean_minutes_to_resolve 120");
