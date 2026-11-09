@@ -51,7 +51,7 @@ import {
   type Status,
   type Summary,
 } from "./api.ts";
-import { useT, type T } from "./i18n.ts";
+import { useT, type T, viewerLocale, setViewerLocale } from "./i18n.ts";
 import { search } from "./search.ts";
 
 /** 95 minutes is "1 h 35 min"; the clock of an incident is read in hours more than in seconds. */
@@ -191,7 +191,7 @@ function OverviewPage({ call, summary }: { call: Call; summary?: Summary }) {
   const [o, setO] = useState<Overview>();
   useEffect(() => void call<Overview>("/api/v1/overview").then(setO, () => {}), [call, summary]);
   const s = summary;
-  const week = (d: string) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  const week = (d: string) => new Date(d).toLocaleDateString(viewerLocale(), { month: "short", day: "numeric", timeZone: "UTC" });
   const color = (sev: Severity) => TONE_COLORS[SEVERITY_META[sev].tone];
   const active = s ? Object.values(s.open).reduce((a, b) => a + b, 0) : 0;
   // A week nothing was resolved in keeps the week before, rather than reading as no time at all.
@@ -497,7 +497,7 @@ function TimelinePanel({ incident, call, onChange }: { incident: Incident; call:
       <ul className="incidents-list flex flex-col gap-2.5">
         {incident.timeline.map((t) => (
           <li key={t.id} className="flex gap-2.5 text-sm">
-            <span className="w-28 shrink-0 text-xs whitespace-nowrap text-fg-muted" title={new Date(t.at).toLocaleString()}>
+            <span className="w-28 shrink-0 text-xs whitespace-nowrap text-fg-muted" title={new Date(t.at).toLocaleString(viewerLocale())}>
               {ago(t.at)}
             </span>
             <span className="flex min-w-0 flex-col">
@@ -556,7 +556,7 @@ function TasksPanel({ incident, call, onChange }: { incident: Incident; call: Ca
                 }
               />
               {t.owner && <Badge>{t.owner}</Badge>}
-              {t.due && <span className="text-xs text-fg-muted">due {new Date(t.due).toLocaleDateString()}</span>}
+              {t.due && <span className="text-xs text-fg-muted">due {new Date(t.due).toLocaleDateString(viewerLocale())}</span>}
               {can("editor") && (
                 <IconButton
                   label={msg("tasksPanel.deleteTheTask", { title: t.title })}
@@ -999,6 +999,7 @@ export function App() {
   const installBrand = useInstallBrand();
   const [theme] = useThemePreference();
   const [locale] = useLocalePreference();
+  setViewerLocale(locale);
   return (
     // The install's brand from config/brand.env (ADR 0053); OpenAsy's own look where it sets none.
     <BrandProvider theme={theme} locale={locale} brand={{ name: "OpenAsy", organization: undefined, ...installBrand }} className="min-h-screen">
